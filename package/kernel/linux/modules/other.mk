@@ -154,14 +154,14 @@ endef
 
 $(eval $(call KernelPackage,eeprom-93cx6))
 
-
 define KernelPackage/eeprom-at24
   SUBMENU:=$(OTHER_MENU)
   TITLE:=EEPROM AT24 support
-  KCONFIG:=CONFIG_EEPROM_AT24
+#  KCONFIG:=CONFIG_EEPROM_AT24
   DEPENDS:=+kmod-i2c-core
   FILES:=$(LINUX_DIR)/drivers/misc/eeprom/at24.ko
-  AUTOLOAD:=$(call AutoProbe,at24)
+#  AUTOLOAD:=$(call AutoProbe,at24)
+  AUTOLOAD:=$(call AutoLoad,30,at24,1)
 endef
 
 define KernelPackage/eeprom-at24/description
@@ -327,6 +327,20 @@ define KernelPackage/iio-dht11/description
 endef
 
 $(eval $(call KernelPackage,iio-dht11))
+
+
+define KernelPackage/inv-mpu-iio
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=MPU9250 Support
+  FILES:=$(LINUX_DIR)/drivers/iio/imu/inv_mpu6050/inv-mpu-iio.ko
+  AUTOLOAD:=$(call AutoLoad,30,inv-mpu-iio,1)
+endef
+
+define KernelPackage/inv-mpu-iio/description
+ Kernel module for MPU9250
+endef
+
+$(eval $(call KernelPackage,inv-mpu-iio))
 
 
 define KernelPackage/lp

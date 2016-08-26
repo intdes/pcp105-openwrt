@@ -62,7 +62,7 @@ detect_mac80211() {
 	devidx=0
 	config_load wireless
 	while :; do
-		config_get type "radio$devidx" type
+		config_get type "wlan$devidx" type
 		[ -n "$type" ] || break
 		devidx=$(($devidx + 1))
 	done
@@ -88,7 +88,8 @@ detect_mac80211() {
 		cap_5ghz=$(iw phy "$dev" info | grep -c "Band 2")
 		[ "$vht_cap" -gt 0 -a "$cap_5ghz" -gt 0 ] && {
 			mode_band="a";
-			channel="36"
+#			channel="36"
+			channel="5"
 			htmode="VHT80"
 		}
 
@@ -110,21 +111,26 @@ detect_mac80211() {
 		fi
 
 		cat <<EOF
-config wifi-device  radio$devidx
+config wifi-device  wlan$devidx
 	option type     mac80211
-	option channel  ${channel}
-	option hwmode	11${mode_band}
 $dev_id
-$ht_capab
-	# REMOVE THIS LINE TO ENABLE WIFI:
-	option disabled 1
+#$ht_capab
+    list ht_capab 'SHORT-GI-20'
+    list ht_capab 'SHORT-GI-40'
+    list ht_capab 'DSSS_CCK-40'
+    option htmode 'HT40'
+	option disabled '0'
+	option channel  ${channel}
+#	option hwmode	11${mode_band}
 
 config wifi-iface
-	option device   radio$devidx
-	option network  lan
-	option mode     ap
-	option ssid     OpenWrt
-	option encryption none
+	option device   wlan$devidx
+	option mode     'ap'
+    option ssid 'Intellidesign.FP2'
+    option key 'MyPASSWORD'
+    option encryption 'psk2'
+	option network  'WIFI'
+	
 
 EOF
 	devidx=$(($devidx + 1))

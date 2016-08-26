@@ -56,11 +56,11 @@ generate_static_network() {
 
 addr_offset=2
 generate_network() {
-	local ifname macaddr protocol type ipaddr netmask
+	local ifname macaddr protocol type ipaddr netmask device
 
 	json_select network
 		json_select "$1"
-			json_get_vars ifname macaddr protocol ipaddr netmask
+			json_get_vars ifname macaddr protocol ipaddr netmask device
 		json_select ..
 	json_select ..
 
@@ -101,6 +101,13 @@ generate_network() {
 				set network.$1.ipaddr='$ipad'
 				set network.$1.netmask='$netm'
 				set network.$1.ip6assign='60'
+			EOF
+		;;
+
+		3g)
+			uci -q batch <<-EOF
+				set network.$1.proto='3g'
+				set network.$1.device='$device'
 			EOF
 		;;
 

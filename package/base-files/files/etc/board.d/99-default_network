@@ -12,6 +12,9 @@ json_is_a network object && exit 0
 ucidef_set_interface_lan 'eth0'
 [ -d /sys/class/net/eth1 ] && ucidef_set_interface_wan 'eth1'
 
+ucidef_set_interface_all 'WIFI' 'wlan0' '192.168.2.1' '255.255.255.0'
+ucidef_set_interface_ppp 'ppp0' 'ppp0' '3g' '/dev/ttyACM3' 
+
 board_config_flush
 
 exit 0

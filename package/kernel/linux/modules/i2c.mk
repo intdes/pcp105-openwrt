@@ -249,3 +249,21 @@ define KernelPackage/i2c-mux-pca9541/description
 endef
 
 $(eval $(call KernelPackage,i2c-mux-pca9541))
+
+define KernelPackage/i2c-designware
+  SUBMENU:=$(I2C_MENU)
+  TITLE:=Designware I2C adapter
+  FILES:= \
+    $(LINUX_DIR)/drivers/i2c/busses/i2c-designware-core.ko \
+    $(LINUX_DIR)/drivers/i2c/busses/i2c-designware-platform.ko
+  AUTOLOAD:=$(call AutoLoad,20,i2c-designware-platform i2c-designware-core,1)
+  KCONFIG:=
+  DEPENDS:=
+endef
+
+define KernelPackage/i2c-designware/description
+ Kernel modules designware I2C adapter
+endef
+
+$(eval $(call KernelPackage,i2c-designware))
+

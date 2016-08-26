@@ -95,6 +95,41 @@ ucidef_set_interface_raw() {
 	json_select ..
 }
 
+ucidef_set_interface_all() {
+	json_select_object network
+
+	local name="$1"
+	local iface="$2"
+	local ipaddr="$3"
+	local netmask="$4"
+
+	json_select_object "$name"
+	json_add_string ifname "$iface"
+	json_add_string protocol "static"
+	json_add_string ipaddr "$ipaddr"
+	json_add_string netmask "$netmask"
+
+	json_select ..
+	json_select ..
+}
+
+ucidef_set_interface_ppp() {
+	json_select_object network
+
+	local name="$1"
+	local iface="$2"
+	local proto="$3"
+	local device="$4"
+
+	json_select_object "$name"
+	json_add_string ifname "$iface"
+	json_add_string protocol "$proto"
+	json_add_string device "$device"
+
+	json_select ..
+	json_select ..
+}
+
 _ucidef_add_switch_port() {
 	# inherited: $num $device $need_tag $role $index $prev_role
 	# inherited: $n_cpu $n_ports $n_vlan $cpu0 $cpu1 $cpu2 $cpu3 $cpu4 $cpu5

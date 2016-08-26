@@ -107,6 +107,32 @@ endef
 
 $(eval $(call KernelPackage,hwmon-lm63))
 
+define KernelPackage/hwmon-lm73
+  SUBMENU:=$(HWMON_MENU)
+  TITLE:=LM73 monitoring support
+  FILES:=$(LINUX_DIR)/drivers/hwmon/lm73.ko
+  AUTOLOAD:=$(call AutoLoad,30,lm73,1)
+endef
+
+define KernelPackage/hwmon-lm73/description
+ Kernel module for lm73 thermal monitor chip
+endef
+
+$(eval $(call KernelPackage,hwmon-lm73))
+
+define KernelPackage/hwmon-ads1015
+  SUBMENU:=$(HWMON_MENU)
+  TITLE:=ADS1015 monitoring support
+  FILES:=$(LINUX_DIR)/drivers/hwmon/ads1015.ko
+  AUTOLOAD:=$(call AutoLoad,30,ads1015,1)
+endef
+
+define KernelPackage/hwmon-ads1015/description
+ Kernel module for ads1015 chip
+endef
+
+$(eval $(call KernelPackage,hwmon-ads1015))
+
 
 define KernelPackage/hwmon-lm75
   TITLE:=LM75 monitoring support
