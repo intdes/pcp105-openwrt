@@ -50,7 +50,7 @@ start() {
 		print ""
 		print "#### LAN configuration"
 		print "config interface lan"
-		print "	option type 	bridge"
+		print "#option type 	bridge"
 		p("ifname", "lan_ifname")
 		p("macaddr", "lan_macaddr")
 		print "	option proto	static"
