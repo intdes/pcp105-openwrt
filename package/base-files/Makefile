@@ -169,6 +169,9 @@ define Package/base-files/install
 	mkdir -p $(1)/etc
 	$(LN) /tmp/resolv.conf /tmp/fstab /tmp/TZ /tmp/localtime $(1)/etc/
 
+	$(LN) /var/etc/hosttype $(1)/etc/hosttype
+	$(LN) /var/etc/gpiolinks $(1)/etc/gpiolinks
+
 	chmod 0600 $(1)/etc/shadow
 	chmod 1777 $(1)/tmp
 
