@@ -56,6 +56,10 @@ ifeq ($(HOST_OS),Darwin)
   HOST_LDFLAGS += -L/usr/local/opt/openssl/lib
 endif
 
+HOST_CFLAGS += -m32
+HOST_CPPFLAGS += -m32
+HOST_LDFLAGS += -m32
+
 HOST_CONFIGURE_VARS = \
 	CC="$(HOSTCC)" \
 	CFLAGS="$(HOST_CFLAGS)" \

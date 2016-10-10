@@ -86,6 +86,10 @@ else
   GRAPHITE_CONFIGURE=--without-isl --without-cloog
 endif
 
+HOST_CFLAGS += -m32
+HOST_CPPFLAGS += -m32
+HOST_LDFLAGS += -m32
+
 GCC_CONFIGURE:= \
 	SHELL="$(BASH)" \
 	$(if $(shell gcc --version 2>&1 | grep LLVM), \
@@ -93,6 +97,9 @@ GCC_CONFIGURE:= \
 		CXXFLAGS="-O2 -fbracket-depth=512 -pipe" \
 	) \
 	$(HOST_SOURCE_DIR)/configure \
+		CFLAGS="$(HOST_CFLAGS)" \
+    	CPPFLAGS="$(HOST_CPPFLAGS)" \
+	    LDFLAGS="$(HOST_LDFLAGS)" \
 		--with-bugurl=$(BUGURL) \
 		--with-pkgversion="$(PKGVERSION)" \
 		--prefix=$(TOOLCHAIN_DIR) \
@@ -167,6 +174,7 @@ GCC_MAKE:= \
 	export SHELL="$(BASH)"; \
 	$(MAKE) \
 		CFLAGS="$(HOST_CFLAGS)" \
+		LDFLAGS="$(HOST_LDFLAGS)" \
 		CFLAGS_FOR_TARGET="$(TARGET_CFLAGS)" \
 		CXXFLAGS_FOR_TARGET="$(TARGET_CFLAGS)"
 

@@ -94,6 +94,10 @@ static struct i2c_board_info i2c0_board_info[] __initdata = {
 		.platform_data = &mpc23s08_data,
 },
 {
+		.type = "bno055",
+		.addr = 0x28,
+},
+{
 		.type = "lm73",
 		.addr = 0x48,
 },

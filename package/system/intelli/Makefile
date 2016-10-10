@@ -44,9 +44,7 @@ endef
 Build/Compile = $(Build/Compile/Default)
 
 define Package/intellibase/install
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DIR) $(1)/usr/local/bin
-	$(CP) ./files/etc/version.conf $(1)/etc/version.conf
+    $(CP) ./files/* $(1)/
 endef
 
 $(eval $(call BuildPackage,intellibase))

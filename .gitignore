@@ -22,6 +22,7 @@ key-build*
 .#*
 *#
 !.config
+!.config.repo
 .emacs.desktop*
 TAGS*~
 git-src

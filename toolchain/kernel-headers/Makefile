@@ -36,7 +36,8 @@ HOST_EXTRACFLAGS=
 LINUX_HAS_HEADERS_INSTALL:=y
 
 KMAKE := $(MAKE) -C $(HOST_BUILD_DIR) \
-	HOSTCFLAGS="$(HOST_CFLAGS) -Wall -Wmissing-prototypes -Wstrict-prototypes" \
+	HOSTCFLAGS="$(HOST_CFLAGS) -m32 -Wall -Wmissing-prototypes -Wstrict-prototypes" \
+	HOSTLDFLAGS="-m32" \
 	ARCH=$(LINUX_KARCH) \
 	CC="$(KERNEL_CC)" \
 	CFLAGS="$(TARGET_CFLAGS)" \

@@ -43,8 +43,15 @@ REAL_STAGING_DIR_HOST:=$(STAGING_DIR_HOST)
 
 include $(INCLUDE_DIR)/toolchain-build.mk
 
+HOST_CFLAGS += -m32
+HOST_CPPFLAGS += -m32
+HOST_LDFLAGS += -m32
+
 BINUTILS_CONFIGURE:= \
 	./configure \
+		CFLAGS="$(HOST_CFLAGS)" \
+    	CPPFLAGS="$(HOST_CPPFLAGS)" \
+	    LDFLAGS="$(HOST_LDFLAGS)" \
 		--prefix=$(TOOLCHAIN_DIR) \
 		--build=$(GNU_HOST_NAME) \
 		--host=$(GNU_HOST_NAME) \
