@@ -179,7 +179,7 @@ static int __exit hyrax_charger_remove(struct i2c_client *i2c)
 *
 *F*/
 
-static int __init hyrax_charger_probe(struct i2c_client *i2c,
+static int hyrax_charger_probe(struct i2c_client *i2c,
 										 const struct i2c_device_id *id)
 {
     struct hyrax_priv *priv;
@@ -249,7 +249,7 @@ static struct i2c_driver hyrax_charger_driver = {
     .id_table   = hyrax_charger_id,
 };
 
-static int __init hyrax_charger_init(void)
+static int hyrax_charger_init(void)
 {
     return i2c_add_driver(&hyrax_charger_driver);
 }

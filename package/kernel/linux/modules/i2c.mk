@@ -256,7 +256,7 @@ define KernelPackage/i2c-designware
   FILES:= \
     $(LINUX_DIR)/drivers/i2c/busses/i2c-designware-core.ko \
     $(LINUX_DIR)/drivers/i2c/busses/i2c-designware-platform.ko
-  AUTOLOAD:=$(call AutoLoad,20,i2c-designware-platform i2c-designware-core,1)
+#  AUTOLOAD:=$(call AutoLoad,20,i2c-designware-platform i2c-designware-core,1)
   KCONFIG:=
   DEPENDS:=
 endef

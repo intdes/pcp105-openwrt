@@ -12,7 +12,23 @@ init_switch() {
 	setup_switch
 }
 
+setup_apn() {
+        APN=`uci get wireless.@wifi-iface[0].ssid`
+        if [ $APN == "Intellidesign.FP2" ]; then
+                SERIAL=`i2cget -f -y 0 0x50 0x05 b | cut -dx -f2`
+                SERIAL=$SERIAL`i2cget -f -y 0 0x50 0x06 b | cut -dx -f2`
+                SERIAL=$SERIAL`i2cget -f -y 0 0x50 0x07 b | cut -dx -f2`
+				if [ ! $SERIAL == "ffffff" ]; then
+	                SERIAL=$(( 0x$SERIAL ))
+        	        uci set wireless.@wifi-iface[0].ssid=$APN.$SERIAL
+            	    uci commit
+                	sync
+				fi
+        fi
+}
+
 start_service() {
+	setup_apn
 	init_switch
 
 	procd_open_instance

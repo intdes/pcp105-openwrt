@@ -18,7 +18,7 @@ define KernelPackage/pcp-i2c-init
   SUBMENU:=Other modules
   TITLE:=I2C peripheral setup for PCP105
   FILES:=$(PKG_BUILD_DIR)/pcp_i2c_init.ko
-  AUTOLOAD:=$(call AutoLoad,10,pcp_i2c_init,1)
+#  AUTOLOAD:=$(call AutoLoad,10,pcp_i2c_init,1)
 endef
 
 define KernelPackage/pcp-i2c-init/description

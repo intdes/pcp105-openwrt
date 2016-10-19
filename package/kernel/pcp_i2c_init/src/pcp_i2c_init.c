@@ -33,6 +33,9 @@
     ((1 << AT24_SIZE_FLAGS | (_flags))      \
 	        << AT24_SIZE_BYTELEN | ilog2(_len))
 
+#define PCP105					26819
+#define FIT_MACHINE				28823
+
 #define HWREV_P1                0x91
 #define HWREV_P2                0x92
 
@@ -43,6 +46,14 @@
 /*----- prototypes ---------------------------------------------------*/
 
 int GetHwRev( void );
+
+/*----- variables ----------------------------------------------------*/
+
+int iPCAId = 0;
+int iPCARevision = 0;
+
+module_param (iPCAId, uint, 0644);
+module_param (iPCARevision, uint, 0644);
 
 const unsigned int iAT24Config = AT24_DEVICE_MAGIC(2048 / 8, 0);
 
@@ -110,6 +121,7 @@ static struct i2c_board_info i2c0_board_info[] __initdata = {
 		.addr = 0x50,
 		.platform_data = &at24_data,
 },
+
 {
 		.type = "pcp105mcu",
 		.addr = 0x66,
@@ -117,7 +129,7 @@ static struct i2c_board_info i2c0_board_info[] __initdata = {
 
 };
 
-static struct gpio_led pcp105p1_leds[] = {
+static struct gpio_led pcp105_p1_leds[] = {
         {
                 .name = "gps_led",
                 .gpio = 1,
@@ -126,7 +138,7 @@ static struct gpio_led pcp105p1_leds[] = {
         },
 };
 
-static struct gpio_led pcp105p2_leds[] = {
+static struct gpio_led pcp105_p2_leds[] = {
         {
                 .name = "gps_led",
                 .gpio = 1,
@@ -141,26 +153,89 @@ static struct gpio_led pcp105p2_leds[] = {
         },
 };
 
+static struct gpio_led fit_machine_p1_leds[] = {
+        {
+                .name = "gps_led",
+                .gpio = 1,
+                .default_trigger = "pps",
+                .active_low = 0,
+        },
+        {
+                .name = "heartbeat_red",
+                .gpio = 13,
+                .active_low = 0,
+                .default_trigger = "none",
+        },
+        {
+                .name = "heartbeat_blue",
+                .gpio = 14,
+                .active_low = 0,
+                .default_trigger = "none",
+        },
+        {
+                .name = "heartbeat_green",
+                .gpio = 0,
+                .active_low = 0,
+                .default_trigger = "none",
+        },
+};
 
-static struct gpio_led_platform_data pcp105_leds_data = {
+
+static struct gpio_led_platform_data hyrax_leds_data = {
         .num_leds = 1,
-        .leds = pcp105p1_leds,
+        .leds = pcp105_p1_leds,
 };
 
 static struct platform_device pcp105_leds_dev = {
         .name = "leds-gpio",
         .id = -1,
-        .dev.platform_data = &pcp105_leds_data,
+        .dev.platform_data = &hyrax_leds_data,
 };
 
 static struct platform_device *pcp105_devs[] __initdata = {
         &pcp105_leds_dev,
 };
 
-static int __init pcp_i2c_init(void) 
-{  
-	int iHwRev;
+static char *IdString( int id )
+{
+	static char zString[32] = "";
 
+	switch ( id )
+	{
+	case ( PCP105 ) :
+		strcpy( zString, "PCP105" );
+		break;
+	case ( FIT_MACHINE ) :
+		strcpy( zString, "Fit" );
+		break;
+	default :
+		strcpy( zString, "Unknown" );
+		break;
+	}
+	return ( zString );
+}
+
+static char *RevisionString( int iRevision )
+{
+	static char zString[32] = "";
+
+	if ( ( iRevision >= 0x91 ) && ( iRevision < 0xa0 ) )
+	{
+		sprintf( zString, "P%d", iRevision-0x90 );
+	}
+	else if ( ( iRevision >= 0xa0 ) && ( iRevision <= (0xa0+('Z'-'A')) ) )
+	{
+		sprintf( zString, "%c", (iRevision-0xa0)+'A' );
+	}
+	else
+	{
+		strcpy( zString, "Unknown" );
+	}
+	return ( zString );
+}
+
+static int pcp_i2c_init(void) 
+{  
 	at24_data.byte_len = BIT(iAT24Config & AT24_BITMASK(AT24_SIZE_BYTELEN));
 	at24_data.flags =  iAT24Config & AT24_BITMASK(AT24_SIZE_FLAGS);
 
@@ -171,18 +246,39 @@ static int __init pcp_i2c_init(void)
 		printk( "Error registering board info\n" );
 	}
 
-	iHwRev = GetHwRev();
-	switch ( iHwRev )
+	printk( "%s PCAId %d(%s), rev %Xh(%s)\n", __FUNCTION__, 
+			iPCAId, IdString(iPCAId), 
+			iPCARevision, RevisionString(iPCARevision) );
+	switch ( iPCAId )
 	{
-	case ( HWREV_P1 ) :
-		pcp105_leds_data.num_leds = ARRAY_SIZE(pcp105p1_leds);
-		pcp105_leds_data.leds = pcp105p1_leds;
-		break;
-	case ( HWREV_P2 ) :
+
+/*----- Handle PCP105 ------------------------------------------------*/	
 	default :
-		pcp105_leds_data.num_leds = ARRAY_SIZE(pcp105p2_leds);
-		pcp105_leds_data.leds = pcp105p2_leds;
-		pcp105_leds_data.leds = 0;
+	case ( PCP105 ) :
+		switch ( iPCARevision )
+		{
+		case ( HWREV_P1 ) :
+			hyrax_leds_data.num_leds = ARRAY_SIZE(pcp105_p1_leds);
+			hyrax_leds_data.leds = pcp105_p1_leds;
+			break;
+		default :
+		case ( HWREV_P2 ) :
+			hyrax_leds_data.num_leds = ARRAY_SIZE(pcp105_p2_leds);
+			hyrax_leds_data.leds = pcp105_p2_leds;
+			break;
+		}
+		break;
+
+/*----- Handle Movus router ------------------------------------------*/	
+	case ( FIT_MACHINE ) :
+		switch ( iPCARevision )
+		{
+		default :
+		case ( HWREV_P1 ) :
+			hyrax_leds_data.num_leds = ARRAY_SIZE(fit_machine_p1_leds);
+			hyrax_leds_data.leds = fit_machine_p1_leds;
+			break;
+		}
 		break;
 	}
 	platform_add_devices(pcp105_devs, 1 );
