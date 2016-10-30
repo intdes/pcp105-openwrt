@@ -1,0 +1,110 @@
+<%#
+ Copyright 2010 Jo-Philipp Wich <jow@openwrt.org>
+ Licensed to the public under the Apache License 2.0.
+-%>
+
+<%-
+	require("luci.model.uci")
+	local uci = luci.model.uci.cursor_state()
+	require "luci.sys"
+    local sys = require "luci.sys"
+    local utl = require "luci.util"
+	local _io  = require("io")
+
+	io = luci.util.class()
+
+	function io.exec(command)
+    	local fh = _io.popen(command)
+	    assert(fh, "Failed to invoke asterisk")
+
+    	local buffer = fh:read("*a")
+	    fh:close()
+    	return buffer:gsub(" *\n", "")
+	end
+
+    if luci.http.formvalue("status") == "1" then
+
+		local rv = { }
+		local fd = _io.popen("ls /sys/class/gpio")
+		local gpio_number
+		if fd then
+			while true do
+				local line = fd:read("*l")
+				if not line then break end
+
+				if line:find("gpiochip") then
+					--do nothing
+				elseif line:find("gpio") then
+					gpio_number = line:sub( 5, 10 )
+					rv[#rv+1] = {
+						gpio = gpio_number,
+						value = nixio.fs.readfile("/sys/class/gpio/gpio" .. gpio_number .. "/value"),
+						direction = nixio.fs.readfile("/sys/class/gpio/gpio" .. gpio_number .. "/direction")
+					}
+				end
+			end			
+			fd:close()
+		end
+
+        luci.http.prepare_content("application/json")
+        luci.http.write_json(rv)
+        return
+    end
+-%>
+
+<%+header%>
+
+<script type="text/javascript" src="<%=resource%>/cbi.js"></script>
+<script type="text/javascript">//<![CDATA[
+
+    XHR.poll(2, '<%=REQUEST_URI%>', { status: 1 },
+        function(x, info)
+        {
+			var html = '';
+			var d = document.getElementById('gpio-description');
+
+			if (d)
+			{
+				var text = x.responseText;
+				var start = text.indexOf("[{\"");
+				var end = text.indexOf("}]", start);
+				text = text.substring(start,end+2);
+				var obj = {};
+				try 
+				{
+					obj = JSON.parse(text);
+				} 
+				catch (err ) 
+				{
+					html = 'No GPIO configured';
+				}
+
+				for (var idx = 0; idx < obj.length; idx++)
+				{
+					var gpio = obj[idx];
+					html += String.format('GPIO %s : %s : %s\<br />', 
+										  gpio.gpio, 
+										  gpio.direction, 
+										  gpio.value );
+				}
+				d.innerHTML = html;
+			}
+		}
+	);
+//]]></script>
+
+<%+header%>
+
+<div class="cbi-map">
+	<fieldset class="cbi-section">
+		<legend><%:Diagnostics%></legend>
+
+		<div class="cbi-value-field" style="vertical-align:left; text-align:left; padding:3px" id="gpio-description">
+			<em><%:Collecting data...%></em>
+		</div>
+
+	</fieldset>
+</div>
+
+
+

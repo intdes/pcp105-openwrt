@@ -35,7 +35,8 @@ get_version()
 {
 	PROTOCOL=`i2cget -f -y 0 0x50 0x7f b | cut -d'x' -f2`
 	if [[ "$PROTOCOL" == "ff" ]] ; then
-		VERSION="UNKNOWNP1"
+		BOARD_TYPE="UNKNOWN"
+		VERSION=$BOARD_TYPE"P1"
 		R_PCA_C="0"
 		VER_ENC="0"
 	else
@@ -43,32 +44,32 @@ get_version()
 	    R_PCA_C=$R_PCA_C`i2cget -f -y 0 0x50 0x12 b | cut -d'x' -f2`
     	R_PCA_C=$R_PCA_C`i2cget -f -y 0 0x50 0x13 b | cut -d'x' -f2`
 		if [[ "$R_PCA_C" == "0068c3" ]]; then
-			VERSION="PCP105"
+			BOARD_TYPE="PCP105"
 		elif [[ "$R_PCA_C" == "007097" ]]; then
-			VERSION="FIT"
+			BOARD_TYPE="FIT"
 		else
-			VERSION="UNKNOWN"
+			BOARD_TYPE="UNKNOWN"
 		fi
 
 		VER_ENC=`i2cget -f -y 0 0x50 0x14 b | cut -d'x' -f2`
 		if [[ "$VER_ENC" == "91" ]] ; then
-			VERSION=$VERSION"P1"
+			VERSION=$BOARD_TYPE"P1"
 		elif [[ "$VER_ENC" == "92" ]] ; then
-			VERSION=$VERSION"P2"
+			VERSION=$BOARD_TYPE"P2"
 		elif [[ "$VER_ENC" == "93" ]] ; then
-			VERSION=$VERSION"P3"
+			VERSION=$BOARD_TYPE"P3"
 		elif [[ "$VER_ENC" == "94" ]] ; then
-			VERSION=$VERSION"P4"
+			VERSION=$BOARD_TYPE"P4"
 		elif [[ "$VER_ENC" == "a0" ]] ; then
-			VERSION=$VERSION"A"
+			VERSION=$BOARD_TYPE"A"
 		else
 			#Set hw rev if an unknown value is detected
 			if [[ "$VERSION" == "PCP105" ]]; then
-				VERSION=$VERSION"P2"
+				VERSION=$BOARD_TYPE"P2"
 			elif [[ "$VERSION" == "FIT" ]]; then
-				VERSION=$VERSION"P1"
+				VERSION=$BOARD_TYPE"P1"
 			else
-				VERSION=$VERSION"P1"
+				VERSION=$BOARD_TYPE"P1"
 			fi
 		fi
 	fi

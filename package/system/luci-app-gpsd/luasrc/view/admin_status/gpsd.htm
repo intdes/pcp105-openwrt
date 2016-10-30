@@ -1,0 +1,161 @@
+<%#
+ Copyright 2010 Jo-Philipp Wich <jow@openwrt.org>
+ Licensed to the public under the Apache License 2.0.
+-%>
+
+<%-
+	require("luci.model.uci")
+	local uci = luci.model.uci.cursor_state()
+	require "luci.sys"
+    local sys = require "luci.sys"
+    local utl = require "luci.util"
+	local _io  = require("io")
+
+	local gpsString = ""
+	local lat_sample = ""
+	local long_sample = ""
+	local ele_sample = ""
+	local time_sample = ""
+	local sat_sample = ""
+	local fix_sample = ""
+	local hdop = ""
+	local vdop = ""
+	local pdop = ""
+
+	io = luci.util.class()
+
+	function io.exec(command)
+    	local fh = _io.popen(command)
+	    assert(fh, "Failed to invoke asterisk")
+
+    	local buffer = fh:read("*a")
+	    fh:close()
+    	return buffer:gsub(" *\n", "")
+	end
+
+	function readGps()
+		local fd = _io.popen("/usr/local/bin/readcond gpxlogger 1000 1 656")
+		local startp, endp
+		if fd then
+			while true do
+				local line = fd:read("*l")
+				if not line then break end
+
+				if line:find("ele") then
+					startp = line:find("\>") + 1
+					endp = line:find("\<", startp)
+					ele_sample = line:sub( startp, endp-1 )
+
+				elseif line:find("\<fix") then
+					startp = line:find("\>") + 1
+					endp = line:find("\<", startp)
+					fix_sample = line:sub( startp, endp-1 )
+
+				elseif line:find("lat") then
+					startp = line:find("\"") + 1
+					endp = line:find("\"", startp)
+					lat_sample = line:sub( startp, endp-1 )
+
+					startp = line:find("\"", endp+1) + 1
+					endp = line:find("\"", startp)
+					long_sample = line:sub( startp, endp-1 )
+
+				elseif line:find("time") then
+					startp = line:find("\>") + 1
+					endp = line:find("\<", startp)
+					time_sample = line:sub( startp, endp-1 )
+
+				elseif line:find("sat") then
+					startp = line:find("\>") + 1
+					endp = line:find("\<", startp)
+					sat_sample = line:sub( startp, endp-1 )
+
+				elseif line:find("hdop") then
+					startp = line:find("\>") + 1
+					endp = line:find("\<", startp)
+					hdop_sample = line:sub( startp, endp-1 )
+
+				elseif line:find("vdop") then
+					startp = line:find("\>") + 1
+					endp = line:find("\<", startp)
+					vdop_sample = line:sub( startp, endp-1 )
+
+				elseif line:find("pdop") then
+					startp = line:find("\>") + 1
+					endp = line:find("\<", startp)
+					pdop_sample = line:sub( startp, endp-1 )
+
+				end
+			end			
+			fd:close()
+		end
+	end
+
+    if luci.http.formvalue("status") == "1" then
+		readGps()
+        local rv = {
+                latvalue = lat_sample,
+                longvalue = long_sample,
+				elevalue = ele_sample,
+				timevalue = time_sample,
+				satvalue = sat_sample,
+				fixvalue = fix_sample,
+				hdopvalue = hdop_sample,
+				vdopvalue = vdop_sample,
+				pdopvalue = pdop_sample,
+        }
+        luci.http.prepare_content("application/json")
+        luci.http.write_json(rv)
+        return
+    end
+-%>
+
+<%+header%>
+
+<script type="text/javascript" src="<%=resource%>/cbi.js"></script>
+<script type="text/javascript">//<![CDATA[
+
+    XHR.poll(5, '<%=REQUEST_URI%>', { status: 1 },
+        function(x, info)
+        {
+			var html = '';
+			var d = document.getElementById('gps-description');
+
+			if (d)
+			{
+				var text = x.responseText;
+				var start = text.indexOf("{\"");
+				var end = text.indexOf("}", start);
+				text = text.substring(start,end+1);
+				var obj = JSON.parse(text);
+
+				html += String.format('Latitude: %s\<br />', obj.latvalue );
+				html += String.format('Longtitude: %s\<br />', obj.longvalue );
+				html += String.format('Elevation: %s\<br />', obj.elevalue );
+				html += String.format('Time: %s\<br />', obj.timevalue );
+				html += String.format('Fix: %s\<br />', obj.fixvalue );
+				html += String.format('Satellites: %s\<br />', obj.satvalue );
+				html += String.format('HDOP: %s\<br />', obj.hdopvalue );
+				html += String.format('VDOP: %s\<br />', obj.vdopvalue );
+				html += String.format('PDOP: %s\<br />', obj.vdopvalue );
+				d.innerHTML = html;
+			}
+		}
+	);
+//]]></script>
+
+<%+header%>
+
+<div class="cbi-map">
+	<fieldset class="cbi-section">
+		<legend><%:Diagnostics%></legend>
+
+		<div class="cbi-value-field" style="vertical-align:left; text-align:left; padding:3px" id="gps-description">
+			<em><%:Collecting datas...%></em>
+		</div>
+
+	</fieldset>
+</div>
+
+
+
