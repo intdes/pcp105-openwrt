@@ -57,5 +57,13 @@ define Package/$(PKG_NAME)/install
 	else true; fi
 endef
 
+define Package/$(PKG_NAME)/postinst
+    if [ -f /etc/init.d/gpioluasetup.sh ]; then
+            /etc/init.d/gpioluasetup.sh enable
+    fi
+exit 0
+endef
+
+
 $(eval $(call BuildPackage,$(PKG_NAME)))
 

@@ -3,91 +3,163 @@
  Licensed to the public under the Apache License 2.0.
 -%>
 
-<%-
-	require("luci.model.uci")
-	local uci = luci.model.uci.cursor_state()
-	require "luci.sys"
-    local sys = require "luci.sys"
-    local utl = require "luci.util"
-	local _io  = require("io")
-
-	io = luci.util.class()
-
-	function io.exec(command)
-    	local fh = _io.popen(command)
-	    assert(fh, "Failed to invoke asterisk")
-
-    	local buffer = fh:read("*a")
-	    fh:close()
-    	return buffer:gsub(" *\n", "")
-	end
-
-    if luci.http.formvalue("status") == "1" then
-
-		local rv = { }
-		local fd = _io.popen("ls /sys/class/gpio")
-		local gpio_number
-		if fd then
-			while true do
-				local line = fd:read("*l")
-				if not line then break end
-
-				if line:find("gpiochip") then
-					--do nothing
-				elseif line:find("gpio") then
-					gpio_number = line:sub( 5, 10 )
-					rv[#rv+1] = {
-						gpio = gpio_number,
-						value = nixio.fs.readfile("/sys/class/gpio/gpio" .. gpio_number .. "/value"),
-						direction = nixio.fs.readfile("/sys/class/gpio/gpio" .. gpio_number .. "/direction")
-					}
-				end
-			end			
-			fd:close()
-		end
-
-        luci.http.prepare_content("application/json")
-        luci.http.write_json(rv)
-        return
-    end
--%>
-
 <%+header%>
 
 <script type="text/javascript" src="<%=resource%>/cbi.js"></script>
 <script type="text/javascript">//<![CDATA[
 
-    XHR.poll(2, '<%=REQUEST_URI%>', { status: 1 },
+	var obj = {};
+
+	/*
+	 * setListValue -
+	 *
+	 * Set a list box value
+     */
+	var setListValue = function( path, value )
+	{
+		var listbox = document.getElementById(path);
+		for (var idx = 0; idx < listbox.length; idx++)
+		{
+			if ( String(value).trim() == listbox[idx].value.trim() )
+			{
+				listbox.selectedIndex = idx;
+				cbi_d_update();
+				break;
+			}
+		}
+	}
+
+	/*
+	 * setTextValue -
+	 *
+	 * Set a text box value
+     */
+	var setTextValue = function( path, value )
+	{
+		var listbox = document.getElementById(path);
+		if ( value )
+			listbox.value = value.trim();
+		else
+			listbox.value = "";
+		cbi_d_update();
+	}
+
+	/*
+	 * setCheckBoxValue -
+	 *
+	 * Set a check box value
+     */
+	var setCheckBoxValue = function( path, value )
+	{
+		var listbox = document.getElementById(path);
+		if ( value.trim() == "0" )
+		{
+			listbox.checked = false;
+		}
+		else
+		{
+			listbox.checked = true;
+		}
+	}
+
+	/*
+	 * updateGpio -
+	 *
+	 * Updates the configuration settings for a GPIO
+     */
+	var updateGpio = function( id ) 
+	{
+		window.scrollTo(0,0);
+		setListValue( "cbid.gpio._number.GPIO", obj[id].gpio + " (" + obj[id].gpio_port_number + ")" );
+		setListValue( "cbid.gpio._number.operation", "export" );
+		setListValue( "cbid.gpio._number.direction", obj[id].direction );
+		setTextValue( "cbid.gpio._number.label", obj[id].label );
+		setCheckBoxValue( "cbid.gpio._number.state",  obj[id].value );
+	}
+
+	/*
+	 * removeGpio - 
+	 *
+	 * Triggers a gpio to be toggled.
+     */
+	var toggleGpio = function( id ) 
+	{
+		var gpio_value = obj[id].value;
+		gpio_value = (gpio_value=="0\n") ? "1" : "0";
+		XHR.get('<%=luci.dispatcher.build_url("admin", "system", "gpio", "toggle")%>', { gpio: obj[id].gpio_port_number, value: gpio_value },
+            function(x, data) { 
+			}
+        );
+	}
+
+	/*
+	 * removeGpio - 
+	 *
+	 * Triggers a gpio to be unexported.
+     */
+	var removeGpio = function( id ) {
+
+		XHR.get('<%=luci.dispatcher.build_url("admin", "system", "gpio", "remove")%>', { gpio: obj[id].gpio },
+            function(x, data) { 
+			}
+        );
+	}
+
+	/*
+	 * Triggers GPIO polling and constructs the diagnostic table.
+     */
+	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "system", "gpio", "poll")%>', { },
         function(x, info)
         {
 			var html = '';
-			var d = document.getElementById('gpio-description');
+			var d = document.getElementById('gpio_status_table');
 
 			if (d)
 			{
-				var text = x.responseText;
-				var start = text.indexOf("[{\"");
-				var end = text.indexOf("}]", start);
-				text = text.substring(start,end+2);
-				var obj = {};
-				try 
-				{
-					obj = JSON.parse(text);
-				} 
-				catch (err ) 
-				{
-					html = 'No GPIO configured';
-				}
+                /* clear all rows */
+                while( d.rows.length > 1 )
+                    d.rows[0].parentNode.deleteRow(1);
+
+                /* Sort polled gpio */
+				obj = info;
+				obj.sort(function(a,b) {
+					return parseInt(a.gpio) - parseInt(b.gpio);
+				});
+
+                /* Construct table */
+				var disabled, button_type, button_value;
 
 				for (var idx = 0; idx < obj.length; idx++)
 				{
+                	var tr = d.rows[0].parentNode.insertRow(-1);
+					tr.className = 'cbi-section-table-row cbi-rowstyle-' + ((idx % 2) + 1);
+
 					var gpio = obj[idx];
-					html += String.format('GPIO %s : %s : %s\<br />', 
-										  gpio.gpio, 
-										  gpio.direction, 
-										  gpio.value );
+					tr.insertCell(-1).innerHTML = '<input class="cbi-button cbi-input-edit" type="button" value="<%:Edit%>" id=' + idx + ' onclick="updateGpio(this.id)" />';
+					tr.insertCell(-1).innerHTML = gpio.gpio + " (" + gpio.gpio_port_number + ")";
+					tr.insertCell(-1).innerHTML = gpio.direction;
+
+					if ( gpio.direction.trim() == "out" )
+						disabled = " ";
+					else
+						disabled = " disabled=true";
+
+					if ( gpio.value == "0\n" )
+					{
+						button_type = "cbi-input-reset";
+						button_value = "<%:0%>";
+					}
+					else
+					{
+						button_type = "cbi-input-apply";
+						button_value = "<%:1%>";
+					}
+						
+					tr.insertCell(-1).innerHTML = '<input class="cbi-button ' + button_type + '"' + disabled + ' type="button" value="' + button_value + '" id=' + idx + ' onclick="toggleGpio(this.id)" />';
+					tr.insertCell(-1).innerHTML = gpio.label;
+					tr.insertCell(-1).innerHTML = '<input class="cbi-button cbi-input-remove" type="button" value="<%:Unexport%>" id=' + idx + ' onclick="removeGpio(this.id)" />';
+
 				}
-				d.innerHTML = html;
 			}
 		}
 	);
@@ -99,12 +171,20 @@
 	<fieldset class="cbi-section">
 		<legend><%:Diagnostics%></legend>
 
-		<div class="cbi-value-field" style="vertical-align:left; text-align:left; padding:3px" id="gpio-description">
-			<em><%:Collecting data...%></em>
-		</div>
-
+		<table class="cbi-section-table" id="gpio_status_table">
+			<tr class="cbi-section-table-titles">
+				<th class="cbi-section-table-cell"><%:Edit%></th>
+				<th class="cbi-section-table-cell"><%:GPIO%></th>
+				<th class="cbi-section-table-cell"><%:Direction%></th>
+				<th class="cbi-section-table-cell"><%:State%></th>
+				<th class="cbi-section-table-cell"><%:Label%></th>
+				<th class="cbi-section-table-cell"><%:Unexport%></th>
+			</tr>
+			<tr class="cbi-section-table-row">
+				<td colspan="4"><em><br /><%:Collecting data...%></em></td>
+			</tr>
+		</table>
+		
 	</fieldset>
 </div>
-
-
 
