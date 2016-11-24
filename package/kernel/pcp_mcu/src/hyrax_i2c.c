@@ -32,6 +32,7 @@
 #include <linux/poll.h>
 #include <linux/i2c.h>
 #include <linux/slab.h>
+#include <linux/watchdog.h>
 
 /*----- projects files -----------------------------------------------*/
 
@@ -132,6 +133,56 @@ int GetRevision( struct device *dev )
 	iMinorRevision = i2c_smbus_read_word_data( i2c, IC_REG_BUILD_NUM_MINOR );
 
 	return ( ( iMajorRevision * 100 ) + iMinorRevision );
+}
+
+/*F*********************************************************************
+* NAME: void KickWatchdog( struct device *dev )
+*
+* DESCRIPTION:
+*	Kick the MCU watchdog.
+*
+* INPUTS:
+*	dev					i2c device.
+*
+* OUTPUTS:
+*
+* NOTES:
+*
+*F*/
+
+int KickWatchdog( struct device *dev )
+{
+    struct i2c_client *i2c = to_i2c_client(dev);
+	int iRet;
+
+	iRet = i2c_smbus_write_byte_data( i2c, IC_WATCHDOG_KICK, 0 );
+	return ( iRet );
+}
+
+/*F*********************************************************************
+* NAME: void SetWatchdogTimeout( struct device *dev, WORD iTimeout )
+*
+* DESCRIPTION:
+*	Sets the watchdog timeout on the MCU.
+*
+* INPUTS:
+*	dev					I2C device
+*	iTimeout			watchdog timeout.
+*
+* OUTPUTS:
+*
+* NOTES:
+*
+*F*/
+
+int SetWatchdogTimeout( struct device *dev, WORD iTimeout )
+{
+    struct i2c_client *i2c = to_i2c_client(dev);
+	int iRet;
+
+	iTimeout *= 1000;
+	iRet = i2c_smbus_write_word_data( i2c, IC_WATCHDOG_INIT, iTimeout );
+	return ( iRet );
 }
 
 /*F*********************************************************************

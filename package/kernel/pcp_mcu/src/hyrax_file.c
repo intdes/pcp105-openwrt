@@ -34,6 +34,7 @@
 #include <asm/segment.h>
 #include <asm/uaccess.h>
 #include <linux/buffer_head.h>
+#include <linux/watchdog.h>
 
 /*----- projects files -----------------------------------------------*/
 
@@ -58,7 +59,6 @@ struct file* file_open(const char* path, int flags, int rights)
     set_fs(oldfs);
 	iFileOffset = 0;
     if(IS_ERR(filp)) {
-		printk( "Error oepning file ret with error %d\n", (long)filp);	//WTO
 //        err = PTR_ERR(filp);
         return NULL;
     }

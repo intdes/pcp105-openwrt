@@ -50,7 +50,8 @@ enum PH_STATUS {
 #define MAX_FILENAME_LENGTH				256
 
 struct hyrax_priv {
-    struct i2c_client *spi;
+    struct i2c_client *i2c;
+	struct watchdog_device wdt;
 	struct cdev cdev;
 	char zFileName[MAX_FILENAME_LENGTH+1];
 };
@@ -67,6 +68,10 @@ void file_close(struct file* file);
 int file_read(struct file* file, unsigned long long offset, unsigned char* data, unsigned int size);
 int file_write(struct file* file, unsigned long long offset, unsigned char* data, unsigned int size);
 int file_sync(struct file* file);
+
+//hyrax_watchdog
+int hyrax_init_wdt( struct i2c_client *i2c );
+void hyrax_close_wdt( struct i2c_client *i2c );
 
 /*----- variables ----------------------------------------------------*/
 

@@ -35,6 +35,7 @@
 #include <linux/i2c.h>
 #include <linux/slab.h>
 #include <linux/of_platform.h>
+#include <linux/watchdog.h>
 
 /*----- projects files -----------------------------------------------*/
 
@@ -154,6 +155,7 @@ static int __exit hyrax_charger_remove(struct i2c_client *i2c)
     struct hyrax_priv *priv = dev_get_drvdata(&i2c->dev);
 
 	hyrax_charger_destroy_sysfs(i2c);
+	hyrax_close_wdt(i2c);
 #ifdef SUPPORT_FS
 	device_destroy(psClass, MKDEV(HYRAX_CHARGER_MAJOR, 0));
 	class_destroy(psClass);
@@ -196,6 +198,11 @@ static int hyrax_charger_probe(struct i2c_client *i2c,
 /*----- Initialise sysfs interface -----------------------------------*/
 	hyrax_charger_init_sysfs( i2c );
     dev_set_drvdata(&i2c->dev, priv);
+	priv->i2c = i2c;
+
+/*----- Initialise watchdog ------------------------------------------*/
+	hyrax_init_wdt( i2c );
+
 #ifdef SUPPORT_FS
 /*----- Register /dev/v2v device ------------------------------------*/
 	cdev_init( &priv->cdev, &hyrax_charger_fops );

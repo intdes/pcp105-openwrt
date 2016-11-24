@@ -31,6 +31,7 @@
 #include <linux/sched.h>
 #include <linux/poll.h>
 #include <linux/i2c.h>
+#include <linux/watchdog.h>
 
 /*----- projects files -----------------------------------------------*/
 

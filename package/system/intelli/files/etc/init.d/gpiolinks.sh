@@ -112,7 +112,7 @@ do_hosttype()
 
 do_platform_init()
 {
-	insmod /lib/modules/4.4.7/pcp_i2c_init.ko iPCARevision=0x$VER_ENC iPCAId=0x$R_PCA_C
+	insmod /lib/modules/4.4.7/hyrax_init.ko iPCARevision=0x$VER_ENC iPCAId=0x$R_PCA_C
 	insmod /lib/modules/4.4.7/i2c-designware-core.ko
 	insmod /lib/modules/4.4.7/i2c-designware-platform.ko
 }

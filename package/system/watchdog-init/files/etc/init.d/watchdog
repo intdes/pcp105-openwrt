@@ -1,0 +1,27 @@
+#!/bin/sh /etc/rc.common
+### BEGIN INIT INFO
+# Provides:          watchdog
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     S
+# Default-Stop:      
+# Short-Description: Starts watchdog.
+# Description:       Starts watchdog.
+### END INIT INFO
+
+START=65
+
+USE_PROCD=1
+
+start_service()
+{
+	watchdog -t 15 /dev/watchdog
+	exit 0
+}
+
+stop_service()
+{
+	killall watchdog
+	exit 0
+}
+
