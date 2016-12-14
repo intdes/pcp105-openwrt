@@ -1,0 +1,85 @@
+-- Hyrax Bluetooth FP MIB                        IntelliDesign Pty Ltd
+--
+--
+
+    HYRAX-PCP105-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, Integer32, Unsigned32, Gauge32, NOTIFICATION-TYPE
+            FROM SNMPv2-SMI
+
+
+        DisplayString
+            FROM SNMPv2-TC
+			
+		OBJECT-GROUP, NOTIFICATION-GROUP
+			FROM SNMPv2-CONF			
+			
+		intellidesign
+			FROM INTELLI-SMI;
+
+    hyraxMIB MODULE-IDENTITY
+      LAST-UPDATED "201611090000Z"
+      ORGANIZATION "IntelliDesign Pty Ltd"
+        CONTACT-INFO
+            "www.intellidesign.com.au"
+        DESCRIPTION
+            "This MIB module defines a MIB which provides hardware monitoring for the Hyrax FP. Derived from DISK_MAN ex UCD"
+        ::= { intellidesign 4 }
+
+    hyraxFirmwareObjects       OBJECT IDENTIFIER ::= { hyraxMIB 1 }
+    
+    hyraxPCATrackingNumber OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The tracking number for the Hyrax PCA."
+        ::= { hyraxFirmwareObjects 1 }
+
+    hyraxEPTrackingNumber OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The tracking number for the Hyrax end product."
+        ::= { hyraxFirmwareObjects 2 }
+
+	hyraxConfigurationNumber OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Build number for the OS."
+--        DEFVAL { "0" }
+        ::= { hyraxFirmwareObjects 3 }
+
+	hyraxHardwareObjects		  OBJECT IDENTIFIER ::= { hyraxMIB 2 }
+
+	hyraxMIBConformance
+               OBJECT IDENTIFIER ::= { hyraxMIB 3 }
+
+	hyraxMIBCompliances
+	        OBJECT IDENTIFIER ::= { hyraxMIBConformance 1 }
+	hyraxMIBGroups  OBJECT IDENTIFIER ::= { hyraxMIBConformance 2 }
+
+	hyraxMIBCompliance MODULE-COMPLIANCE
+    STATUS  current
+    DESCRIPTION
+      "The compliance statement for SNMPv2 entities which
+      implement hyrax."
+    MODULE  -- this module
+        MANDATORY-GROUPS { hyraxGroup1 }
+    ::= { hyraxMIBCompliances 1 }
+	
+	hyraxGroup1 OBJECT-GROUP
+		OBJECTS { hyraxPCATrackingNumber, hyraxEPTrackingNumber, hyraxConfigurationNumber }
+		STATUS  current
+		DESCRIPTION
+				"These objects are required for entities
+				which support notification originator applications."
+		::= { hyraxMIBGroups 1 }
+		
+ END
+ 
+

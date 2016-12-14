@@ -1,0 +1,50 @@
+-- Intellidesign Enteprise Structure of Management Information
+-- Jan 2012 by John Clair
+-- Copyright (c) 2012 by Intellidesign Pty Ltd.
+
+INTELLI-SMI DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-IDENTITY,
+    enterprises
+        FROM SNMPv2-SMI;
+	
+	intellidesign MODULE-IDENTITY
+        LAST-UPDATED "201201230000Z"
+        ORGANIZATION "IntelliDesign Pty Ltd"
+        CONTACT-INFO
+            "John Clair
+             IntelliDesign Pty Ltd
+             99 Bluestone Circuit
+             Seventeen Mile Rocks, QLD 4073
+             AUSTRALIA
+             Tel: +61 3716 7000
+             E-mail: john@intellidesign.com.au"
+        DESCRIPTION
+            "This Structure of Management Information for the IntelliDesign enterprise."
+        ::= { enterprises 39306 }
+	
+-- awaiting assignment from IANA - Subject to change	
+
+	oryx OBJECT-IDENTITY
+    STATUS          current
+    DESCRIPTION        "Intellidesign Oryx-FP product."
+    ::= { intellidesign 1 }
+	
+	tyco OBJECT-IDENTITY
+    STATUS          current
+    DESCRIPTION        "Intellidesign Tyco-FP product."
+    ::= { intellidesign 2 }
+	
+	hyraxpcp100 OBJECT-IDENTITY
+    STATUS          current
+    DESCRIPTION        "Hyrax PCP-100."
+    ::= { intellidesign 3 }
+
+	hyraxpcp105 OBJECT-IDENTITY
+    STATUS          current
+    DESCRIPTION        "Hyrax PCP-105."
+    ::= { intellidesign 4 }
+
+END

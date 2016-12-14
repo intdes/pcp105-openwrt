@@ -1,0 +1,71 @@
+<%#
+ Copyright 2010 Jo-Philipp Wich <jow@openwrt.org>
+ Licensed to the public under the Apache License 2.0.
+-%>
+
+<%+header%>
+
+<script type="text/javascript" src="<%=resource%>/cbi.js"></script>
+<script type="text/javascript">//<![CDATA[
+
+	/*
+	 * scanBluetooth -
+	 *
+	 * Triggers a bluetooth scan.
+     */
+	function scanBluetooth() {
+		var d = document.getElementById('btscan_status_table');
+
+		/* clear all rows */
+		while( d.rows.length > 1 )
+			d.rows[0].parentNode.deleteRow(1);
+				
+		var tr = d.rows[0].parentNode.insertRow(-1);
+
+		tr.insertCell(-1).innerHTML = "Scanning...";
+
+		XHR.get('<%=luci.dispatcher.build_url("admin", "network", "btscan", "scan")%>', { },
+			function(x, info) { 
+	            d.rows[0].parentNode.deleteRow(1);
+
+				if ( info.length == 0 )
+				{
+						var tr = d.rows[0].parentNode.insertRow(-1);
+						tr.insertCell(-1).innerHTML = "No devices detected";
+				}
+				else
+				{
+					for (var idx = 0; idx < info.length; idx++)
+					{
+						var tr = d.rows[0].parentNode.insertRow(-1);
+						tr.insertCell(-1).innerHTML = info[idx].mac;
+						tr.insertCell(-1).innerHTML = info[idx].name;
+						tr.insertCell(-1).innerHTML = info[idx].rssi;
+					}
+				}
+			}
+		);
+	}
+//]]></script>
+
+<%+header%>
+
+<div class="cbi-map">
+	<fieldset class="cbi-section">
+        <legend><%:Diagnostics%></legend>
+		<input class="cbi-button cbi-input-apply" type="button" value="<%:Scan%>" onclick="scanBluetooth()" />
+		<legend> </legend>
+		<table class="cbi-section-table" id="btscan_status_table">
+			<tr class="cbi-section-table-titles">
+				<th class="cbi-section-table-cell"><%:MAC%></th>
+				<th class="cbi-section-table-cell"><%:Name%></th>
+				<th class="cbi-section-table-cell"><%:RSSI%></th>
+			</tr>
+			<tr class="cbi-section-table-row">
+				<td colspan="4"><em><br /></em></td>
+			</tr>
+		</table>
+		
+	</fieldset>
+</div>
+

@@ -23,6 +23,7 @@ int SetState( struct device *dev, int iState );
 int GetState( struct device *dev );
 int SetWatchdogTimeout( struct device *dev, WORD iTimeout );
 int KickWatchdog( struct device *dev );
+BOOL HardwareProbe( struct device *dev );
 
 #endif	//hyrax_i2c_h
 

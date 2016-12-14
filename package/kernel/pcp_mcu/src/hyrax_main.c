@@ -2,15 +2,15 @@
 * FILENAME: hyrax_main.c
 *
 * DESCRIPTION:
-*	Hyrax charger driver
+*	Hyrax MCU interface driver
 *
 * NOTES:
-*   Copyright (c) IntelliDesign, 2014.  All rights reserved.
+*   Copyright (c) IntelliDesign, 2016.  All rights reserved.
 *
 * CHANGES:
 *
 * VERS-NO CR-NO     DATE    WHO DETAIL
-*   1               01Apr14 WTO Created
+*   1               25Nov16 WTO Created
 *
 *H*/
 
@@ -43,6 +43,7 @@
 #include "hyrax_driver.h"
 #undef GLOBAL
 #include "hyrax_ioctl.h"
+#include "hyrax_i2c.h"
 
 /***********************************************************************
 *   PUBLIC DECLARATIONS
@@ -194,10 +195,18 @@ static int hyrax_charger_probe(struct i2c_client *i2c,
 		ret = -ENOMEM;
 		goto error_out;
 	}
+    dev_set_drvdata(&i2c->dev, priv);
+
+/*----- Attempt to detect hardware -----------------------------------*/
+	if ( HardwareProbe( &i2c->dev ) == FALSE )
+	{
+		printk( "%s: Error detecting MCU\n", __FUNCTION__ );
+		ret = -ENODEV;
+		goto error_out;
+	}
 
 /*----- Initialise sysfs interface -----------------------------------*/
 	hyrax_charger_init_sysfs( i2c );
-    dev_set_drvdata(&i2c->dev, priv);
 	priv->i2c = i2c;
 
 /*----- Initialise watchdog ------------------------------------------*/

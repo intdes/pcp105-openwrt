@@ -72,6 +72,8 @@
 
 #define WRITE_DELAY						1
 
+#define NUM_ATTEMPTS					5
+
 #define PERFORM_UPLOAD
 
 typedef struct
@@ -157,6 +159,42 @@ int KickWatchdog( struct device *dev )
 
 	iRet = i2c_smbus_write_byte_data( i2c, IC_WATCHDOG_KICK, 0 );
 	return ( iRet );
+}
+
+/*F*********************************************************************
+* NAME: BOOL HardwareProbe( struct i2c_client *i2c )
+*
+* DESCRIPTION:
+*	Probe for hardware
+*
+* INPUTS:
+*	i2c			i2c device
+*
+* OUTPUTS:
+*	BOOL		TRUE on success,
+*				FALSE otherwise.
+*
+* NOTES:
+*
+*F*/
+
+BOOL HardwareProbe( struct device *dev )
+{
+	BOOL bSuccess = FALSE;
+	int iState;
+	int i;
+
+	for ( i = 0; i < NUM_ATTEMPTS; i++ )
+	{
+		iState = GetState( dev );
+		if ( ( iState == APP_STATE ) || ( iState == BOOTLDR_STATE ) )
+		{
+			bSuccess = TRUE;
+			break;
+		}
+		msleep( 100 );
+	}
+	return ( bSuccess );
 }
 
 /*F*********************************************************************
@@ -675,6 +713,7 @@ int GetState(struct device *dev)
 	int iState;
 
 	iState = i2c_smbus_read_byte_data( i2c, IC_REG_DEVICE_STATE );
+
 	return ( iState );
 }
 
