@@ -40,12 +40,14 @@
 
 #define HWREV_P1                0x91
 #define HWREV_P2                0x92
+#define HWREV_A	                0xA0
 
 /*----- prototypes ---------------------------------------------------*/
 
 int pcp105p1_init(void);
 int pcp105p2_init(void);
 int fitp1_init(void);
+int fita_init(void);
 
 /*----- variables ----------------------------------------------------*/
 
@@ -177,6 +179,10 @@ static int hyrax_init(void)
 		case ( HWREV_P1 ) :
 			fitp1_init();
 			break;
+		case ( HWREV_A ) :
+			fita_init();
+			break;
+
 		}
 		break;
 	}
