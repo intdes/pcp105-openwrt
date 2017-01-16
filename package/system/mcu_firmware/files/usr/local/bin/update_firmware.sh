@@ -14,7 +14,7 @@ STATE=`cat /sys/devices/pci0000:00/0000:00:15.2/i2c_designware.0/i2c-0/0-0066/st
 
 if [ ! -f ${LATEST_FIRMWARE} ]; then
     echo "Firmware not found"
-elif [ ! "z"${STATE} == "z0" -a ! "z"${STATE} == "z1" ]; then
+elif [ ! "z"${STATE} == "z1" -a ! "z"${STATE} == "z2" ]; then
     echo "MCU is in invalid state ${STATE}"
 else
     MCU_STRING=`cat /sys/devices/pci0000:00/0000:00:15.2/i2c_designware.0/i2c-0/0-0066/revision`

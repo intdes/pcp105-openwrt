@@ -10,9 +10,9 @@ include $(TOPDIR)/rules.mk
 UCI_VERSION=2014-06-18
 UCI_RELEASE=1
 
-PKG_NAME:=mcu_firmware
+PKG_NAME:=cantest
 PKG_VERSION:=$(UCI_VERSION)$(if $(UCI_RELEASE),.$(UCI_RELEASE))
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 PKG_REV:=e339407372ffc70b1451e4eda218c01aa95a6a7e
 
 PKG_LICENSE:=LGPLv2.1 GPLv2
@@ -27,11 +27,11 @@ include $(INCLUDE_DIR)/package.mk
 # set to 1 to enable debugging
 DEBUG=
 
-define Package/mcu_firmware
+define Package/cantest_utility
   SECTION:=base
   CATEGORY:=Base system
   DEPENDS:=
-  TITLE:=Firmware for the MCU
+  TITLE:=can test utility
 endef
 
 
@@ -43,13 +43,8 @@ define Build/Compile/Default
 endef
 Build/Compile = $(Build/Compile/Default)
 
-define Package/mcu_firmware/install
+define Package/cantest_utility/install
     $(CP) ./files/* $(1)/
 endef
 
-define Package/mcu_firmware/postinst
-#!/bin/sh
-/usr/local/bin/update_firmware.sh /lib/firmware/PCP105_USB_HUB_RST_v3.0.hex
-endef
-
-$(eval $(call BuildPackage,mcu_firmware))
+$(eval $(call BuildPackage,cantest_utility))

@@ -83,19 +83,6 @@ static struct at24_platform_data at24_data = {
 
 static struct i2c_board_info i2c0_board_info[] __initdata = {
 {
-		.type = "mpu9250",
-		.addr = 0xD0 >> 1,
-        .platform_data = &mpu_data,
-},
-{
-		.type = "slb9645tt",
-		.addr = 0x20,
-},
-{
-		.type = "bno055",
-		.addr = 0x28,
-},
-{
 		.type = "lm73",
 		.addr = 0x48,
 },
@@ -108,10 +95,22 @@ static struct i2c_board_info i2c0_board_info[] __initdata = {
 		.addr = 0x50,
 		.platform_data = &at24_data,
 },
-
 {
 		.type = "pcp105mcu",
 		.addr = 0x66,
+},
+{
+		.type = "mpu9250",
+		.addr = 0xD0 >> 1,
+        .platform_data = &mpu_data,
+},
+{
+		.type = "slb9645tt",
+		.addr = 0x20,
+},
+{
+		.type = "bno055",
+		.addr = 0x28,
 },
 
 };
