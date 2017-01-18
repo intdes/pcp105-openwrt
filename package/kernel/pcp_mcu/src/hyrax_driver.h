@@ -54,6 +54,7 @@ struct hyrax_priv {
 	struct watchdog_device wdt;
 	struct cdev cdev;
 	char zFileName[MAX_FILENAME_LENGTH+1];
+	int iRevision;
 };
 
 /*----- prototypes ---------------------------------------------------*/

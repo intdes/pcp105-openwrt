@@ -81,6 +81,8 @@ static struct at24_platform_data at24_data = {
 	.page_size = 8,
 };
 
+#define MCP23S08_BASE			504
+
 static struct mcp23s08_platform_data mpc23s08_data = {
 	{ { 1, 0 },		// chip[8]  { is_present, pullups }
 	  { 1, 0 },
@@ -90,7 +92,7 @@ static struct mcp23s08_platform_data mpc23s08_data = {
 	  { 1, 0 },
 	  { 1, 0 },
 	  { 1, 0 } },
-	-1,				// base
+	MCP23S08_BASE,	// base
 	false,			// irq_controller
 	false,			// mirror
 };
@@ -155,15 +157,15 @@ static struct spi_board_info spi1_board_info[] = {
 static struct gpio_led pcp105_p2_leds[] = {	
         {
                 .name = "gps_led",
-                .gpio = 1,
+                .gpio = MCP23S08_BASE+2,
                 .default_trigger = "pps",
-                .active_low = 0,
+                .active_low = 1,
         },
         {
                 .name = "heartbeat_led",
-                .gpio = 2,
+                .gpio = MCP23S08_BASE+3,
                 .default_trigger = "heartbeat",
-                .active_low = 0,
+                .active_low = 1,
         },
 };
 

@@ -180,6 +180,7 @@ int KickWatchdog( struct device *dev )
 
 BOOL HardwareProbe( struct device *dev )
 {
+    struct hyrax_priv *priv = dev_get_drvdata(dev);
 	BOOL bSuccess = FALSE;
 	int iState;
 	int i;
@@ -193,6 +194,11 @@ BOOL HardwareProbe( struct device *dev )
 			break;
 		}
 		msleep( 100 );
+	}
+	priv->iRevision = 0;
+	if ( bSuccess == TRUE )
+	{
+		priv->iRevision = GetRevision(dev);
 	}
 	return ( bSuccess );
 }
@@ -216,13 +222,27 @@ BOOL HardwareProbe( struct device *dev )
 int SetWatchdogTimeout( struct device *dev, WORD iTimeout )
 {
     struct i2c_client *i2c = to_i2c_client(dev);
+    struct hyrax_priv *priv = dev_get_drvdata(dev);
 	int iRet;
 
-	iTimeout *= 1000;
+/*----- The timeout was changes to seconds in Rev 4 ------------------*/
+	if ( priv->iRevision < 400 )
+	{
+		iTimeout *= 1000;
+	}
 	iRet = i2c_smbus_write_word_data( i2c, IC_WATCHDOG_INIT, iTimeout );
 	return ( iRet );
 }
 
+int GetWatchdogTimeout( struct device *dev )
+{
+    struct i2c_client *i2c = to_i2c_client(dev);
+	int iTimeout;
+
+	iTimeout = i2c_smbus_read_word_data( i2c, IC_WATCHDOG_INIT );
+
+	return ( iTimeout );
+}
 /*F*********************************************************************
 * NAME: int LoadFirmware( const char *pzFileName )
 *

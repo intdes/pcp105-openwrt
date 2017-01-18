@@ -156,7 +156,9 @@ static int __exit hyrax_charger_remove(struct i2c_client *i2c)
     struct hyrax_priv *priv = dev_get_drvdata(&i2c->dev);
 
 	hyrax_charger_destroy_sysfs(i2c);
+#ifdef SUPPORT_WATCHDOG
 	hyrax_close_wdt(i2c);
+#endif	
 #ifdef SUPPORT_FS
 	device_destroy(psClass, MKDEV(HYRAX_CHARGER_MAJOR, 0));
 	class_destroy(psClass);
@@ -210,7 +212,9 @@ static int hyrax_charger_probe(struct i2c_client *i2c,
 	priv->i2c = i2c;
 
 /*----- Initialise watchdog ------------------------------------------*/
+#ifdef SUPPORT_WATCHDOG
 	hyrax_init_wdt( i2c );
+#endif
 
 #ifdef SUPPORT_FS
 /*----- Register /dev/v2v device ------------------------------------*/

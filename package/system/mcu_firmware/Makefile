@@ -12,7 +12,7 @@ UCI_RELEASE=1
 
 PKG_NAME:=mcu_firmware
 PKG_VERSION:=$(UCI_VERSION)$(if $(UCI_RELEASE),.$(UCI_RELEASE))
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 PKG_REV:=e339407372ffc70b1451e4eda218c01aa95a6a7e
 
 PKG_LICENSE:=LGPLv2.1 GPLv2
@@ -49,7 +49,7 @@ endef
 
 define Package/mcu_firmware/postinst
 #!/bin/sh
-/usr/local/bin/update_firmware.sh /lib/firmware/PCP105_USB_HUB_RST_v3.0.hex
+/usr/local/bin/update_firmware.sh /lib/firmware/PCP105_USB_HUB_RST_v4.0.hex
 endef
 
 $(eval $(call BuildPackage,mcu_firmware))

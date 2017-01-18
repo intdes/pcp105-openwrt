@@ -44,10 +44,18 @@
 
 /*----- prototypes ---------------------------------------------------*/
 
+static ssize_t hyrax_kick_watchdog(struct device *dev,
+	                            struct device_attribute *attr,
+    	                        const char *buf, size_t count);
+static ssize_t hyrax_init_watchdog(struct device *dev,
+	                            struct device_attribute *attr,
+    	                        const char *buf, size_t count);
 static ssize_t hyrax_start_upload(struct device *dev,
 	                            struct device_attribute *attr,
     	                        const char *buf, size_t count);
 static ssize_t hyrax_get_revision(struct device *dev,
+                              struct device_attribute *attr, char *buf);
+static ssize_t hyrax_read_watchdog_timeout(struct device *dev,
                               struct device_attribute *attr, char *buf);
 
 static ssize_t hyrax_set_state(struct device *dev,
@@ -58,6 +66,8 @@ static ssize_t hyrax_get_state(struct device *dev,
 
 /*----- variables ----------------------------------------------------*/
 
+static DEVICE_ATTR(init_watchdog, S_IWUSR|S_IWGRP|S_IRUSR|S_IRGRP, hyrax_read_watchdog_timeout, hyrax_init_watchdog);
+static DEVICE_ATTR(kick_watchdog, S_IWUSR|S_IWGRP, NULL, hyrax_kick_watchdog);
 static DEVICE_ATTR(upload, S_IWUSR|S_IWGRP, NULL, hyrax_start_upload);
 static DEVICE_ATTR(revision, S_IRUSR|S_IRGRP, hyrax_get_revision, NULL);
 
@@ -100,6 +110,9 @@ int hyrax_charger_init_sysfs( struct i2c_client *i2c )
     ret = device_create_file(&i2c->dev, &dev_attr_revision);
 
     ret = device_create_file(&i2c->dev, &dev_attr_state);
+    
+	ret = device_create_file(&i2c->dev, &dev_attr_init_watchdog);
+    ret = device_create_file(&i2c->dev, &dev_attr_kick_watchdog);
 	return ( ret );
 }
 
@@ -109,6 +122,9 @@ void hyrax_charger_destroy_sysfs( struct i2c_client *i2c )
     device_remove_file(&i2c->dev, &dev_attr_revision);
     
 	device_remove_file(&i2c->dev, &dev_attr_state);
+	
+	device_remove_file(&i2c->dev, &dev_attr_init_watchdog);
+	device_remove_file(&i2c->dev, &dev_attr_kick_watchdog);
 }
 
 static ssize_t hyrax_get_revision(struct device *dev,
@@ -135,6 +151,65 @@ static ssize_t hyrax_set_state(struct device *dev,
 	SetState( dev, iState );
 
     return ( count );
+}
+
+/*F*********************************************************************
+* NAME: ssize_t hyrax_kick_watchdog(...)
+*
+* DESCRIPTION:
+*	Kicks the watchdog
+*
+* INPUTS:
+*	None.
+*
+* OUTPUTS:
+*
+* NOTES:
+*
+*F*/
+
+static ssize_t hyrax_kick_watchdog(struct device *dev,
+	                            struct device_attribute *attr,
+    	                        const char *buf, size_t count)
+{
+	KickWatchdog( dev );
+
+	return ( count );
+}
+
+/*F*********************************************************************
+* NAME: ssize_t hyrax_init_watchdog(...)
+*
+* DESCRIPTION:
+*	Initialises the watchdog
+*
+* INPUTS:
+*	None.
+*
+* OUTPUTS:
+*
+* NOTES:
+*
+*F*/
+
+
+static ssize_t hyrax_init_watchdog(struct device *dev,
+	                            struct device_attribute *attr,
+    	                        const char *buf, size_t count)
+{
+	int iPeriod;
+
+	sscanf( buf, "%d", &iPeriod );
+
+	SetWatchdogTimeout( dev, iPeriod );
+
+	return ( count );
+}
+
+static ssize_t hyrax_read_watchdog_timeout(struct device *dev,
+                              struct device_attribute *attr, char *buf)
+{
+	return sprintf( buf, "%d\n", GetWatchdogTimeout( dev ) );
 }
 
 /*F*********************************************************************
