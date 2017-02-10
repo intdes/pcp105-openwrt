@@ -256,6 +256,15 @@ endef
 
 $(eval $(call KernelPackage,block2mtd))
 
+define KernelPackage/ich7spi
+  SUBMENU:=$(BLOCK_MENU)
+  TITLE:=MTD driver for the SPI eeprom
+  FILES:=$(LINUX_DIR)/drivers/mtd/devices/ich7_spi_flash.ko
+endef
+
+$(eval $(call KernelPackage,ich7spi))
+
+
 
 define KernelPackage/dm
   SUBMENU:=$(BLOCK_MENU)
