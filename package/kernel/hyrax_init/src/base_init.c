@@ -37,6 +37,7 @@
 
 #define PCP105					26819
 #define FIT_MACHINE				28823
+#define PCP105_CATERPILLAR		29655
 
 #define HWREV_P1                0x91
 #define HWREV_P2                0x92
@@ -84,6 +85,7 @@ static char *IdString( int id )
 	switch ( id )
 	{
 	case ( PCP105 ) :
+	case ( PCP105_CATERPILLAR ) :
 		strcpy( zString, "PCP105" );
 		break;
 	case ( FIT_MACHINE ) :
@@ -159,6 +161,7 @@ static int hyrax_init(void)
 /*----- Handle PCP105 ------------------------------------------------*/	
 	default :
 	case ( PCP105 ) :
+	case ( PCP105_CATERPILLAR ) :
 		switch ( iPCARevision )
 		{
 		case ( HWREV_P1 ) :

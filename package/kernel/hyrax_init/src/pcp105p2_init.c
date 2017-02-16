@@ -159,7 +159,7 @@ static struct gpio_led pcp105_p2_leds[] = {
                 .name = "gps_led",
                 .gpio = MCP23S08_BASE+2,
                 .default_trigger = "pps",
-                .active_low = 1,
+                .active_low = 0,
         },
         {
                 .name = "heartbeat_led",

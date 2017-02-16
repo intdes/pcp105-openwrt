@@ -97,11 +97,6 @@ static struct mcp23s08_platform_data mpc23s08_data = {
 
 static struct i2c_board_info i2c0_board_info[] __initdata = {
 {
-		.type = "mpu9250",
-		.addr = 0xD0 >> 1,
-        .platform_data = &mpu_data,
-},
-{
 		.type = "slb9645tt",
 		.addr = 0x20,
 },
