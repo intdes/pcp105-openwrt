@@ -1,0 +1,17 @@
+
+config mesh 'bat0'
+	option mesh_iface 'wlan0'
+	option ap_isolation '0'
+	option bonding '0'
+	option fragmentation '1'
+	option gw_mode '0'
+	option gw_sel_class '20'
+	option orig_interval '1000'
+	option bridge_loop_avoidance '0'
+	option hop_penalty '15'
+	option isolation_mark '0x00000000/0x00000000'
+	option routing_algo 'BATMAN_IV'
+	option aggregated_ogms '1'
+	option gw_bandwidth '10000'
+	option ip '105.105.105.1/24'
+

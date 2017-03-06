@@ -1,0 +1,127 @@
+#!/bin/sh /etc/rc.common
+### BEGIN INIT INFO
+# Provides:          batman_init
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: BATMAN initialisation.
+# Description:       BATMAN initialisation.
+### END INIT INFO
+
+START=40
+
+USE_PROCD=1
+
+stop_service() {
+    echo none > /sys/class/net/wlan0/batman_adv/mesh_iface
+}
+
+aggregated() {
+    VAL=`uci get batman-adv.bat0.aggregated_ogms`
+    if [ $VAL=='0' ]; then
+        echo disabled > /sys/class/net/bat0/mesh/aggregated_ogms
+        return 0
+    fi
+    echo enabled > /sys/class/net/bat0/mesh/aggregated_ogms
+}
+
+ap_isolation() {
+    VAL=`uci get batman-adv.bat0.ap_isolation`
+    if [ $VAL == '0' ]; then
+        echo disabled > /sys/class/net/bat0/mesh/ap_isolation
+        return 0
+    fi
+    echo enabled > sys/class/net/bat0/mesh/ap_isolation
+}
+
+bonding() {
+    VAL=`uci get batman-adv.bat0.bonding`
+    if [ $VAL == '0' ]; then
+        echo disabled > /sys/class/net/bat0/mesh/bonding
+        return 0
+    fi
+    echo enabled > /sys/class/net/bat0/mesh/bonding
+}
+
+bridge_loop_avoidance() {
+    VAL=`uci get batman-adv.bat0.bridge_loop_avoidance`
+    if [ $VAL == '0' ]; then
+        echo disabled > /sys/class/net/bat0/mesh/bridge_loop_avoidance 
+        return 0
+    fi
+    echo enabled > /sys/class/net/bat0/mesh/bridge_loop_avoidance 
+}
+
+fragmentation() {
+    VAL=`uci get batman-adv.bat0.fragmentation`
+    if [ $VAL == '0' ]; then
+        echo disabled > /sys/class/net/bat0/mesh/fragmentation 
+        return 0
+    fi
+    echo enabled > /sys/class/net/bat0/mesh/fragmentation 
+}
+
+gw_bandwidth() {
+    VAL=`uci get batman-adv.bat0.gw_bandwidth`
+    echo $VAL > /sys/class/net/bat0/mesh/gw_bandwidth
+}
+
+gw_mode() {
+    VAL=`uci get batman-adv.bat0.gw_mode`
+    if [ $VAL == '0' ]; then
+        echo off > /sys/class/net/bat0/mesh/gw_mode
+        return 0
+    fi
+    echo on > /sys/class/net/bat0/mesh/gw_mode
+}
+
+gw_sel_class() {
+    VAL=`uci get batman-adv.bat0.gw_sel_class`
+    echo $VAL > /sys/class/net/bat0/mesh/gw_sel_class
+}
+
+hop_penalty() {
+    VAL=`uci get batman-adv.bat0.hop_penalty`
+    echo $VAL > /sys/class/net/bat0/mesh/hop_penalty
+}
+
+isolation_mark() {
+    VAL=`uci get batman-adv.bat0.isolation_mark`
+    echo $VAL > /sys/class/net/bat0/mesh/isolation_mark
+}
+
+org_interval() {
+    VAL=`uci get batman-adv.bat0.orig_interval`
+    echo $VAL > /sys/class/net/bat0/mesh/orig_interval
+}
+
+routing_algo() {
+    VAL=`uci get batman-adv.bat0.routing_algo`
+    echo $VAL > /sys/module/batman_adv/parameters/routing_algo
+}
+
+
+update() {
+    IP=`uci get batman-adv.bat0.ip`
+    ip link set up dev bat0
+    ip addr add $IP dev bat0
+    aggregated
+    ap_isolation
+    bonding
+    bridge_loop_avoidance
+    fragmentation
+    gw_bandwidth
+    gw_mode
+    gw_sel_class
+    hop_penalty
+    isolation_mark
+    org_interval
+}
+
+start_service() {
+    routing_algo
+    INTERFACE=`uci get batman-adv.bat0.mesh_iface`
+    echo bat0 > /sys/class/net/$INTERFACE/batman_adv/mesh_iface
+    update
+}
