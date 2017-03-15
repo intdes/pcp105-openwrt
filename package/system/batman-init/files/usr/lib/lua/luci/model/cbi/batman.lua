@@ -3,8 +3,6 @@
 --- Custom batman-adv lua script file
 --- version 1.0
 
-
-
 local m = Map("batman-adv",
 	translate("Batman-Adv"),
 	translate("Better Approach To Mobile Adhoc Networking"))
@@ -15,9 +13,12 @@ interface.widget = "radio"
 interface.template  = "cbi/network_ifacelist"
 interface.nobridges = true
 
-local ip = section:option(Value, "ip", translate("Node IP - CIDR form:"))
+local ip = section:option(Value, "ip", translate("Node IP:"))
 ip.datatype = "list(neg(or(uciname,hostname,ip4addr)))"
-ip.placeholder = "0.0.0.0/0"
+ip.placeholder = "0.0.0.0"
+local mask = section:option(Value, "mask", translate("Netmask"))
+mask.datatype = "list(neg(or(uciname,hostname,ip4addr)))"
+mask.placeholder = "0.0.0.0"
 
 local bw = section:option(Value, "gw_bandwidth", translate("Gateway bandwidth"),
     translate("10000 => 10.0 Up/2.0 Down MBit, 5000 => 5.0 Up/ 1.0 Down MBit"))
@@ -33,11 +34,15 @@ hop.datatype = "uinteger"
 
 section:option(Flag, "ap_isolation", translate("Enable ap-isolation")).rmempty = false
 section:option(Flag, "fragmentation", translate("Fragmentation")).rmempty = false
-section:option(Flag, "gw_mode", translate("Gatewate mode")).rmempty = false
+
 section:option(Flag, "bonding", translate("Bonding mode")).rmempty = false
 section:option(Flag, 'bridge_loop_avoidance', translate("Bridge loop avoidance")).rmempty = false
 section:option(Flag, "aggregated_ogms", translate("Aggregated original messages")).rmempty = false
 
+local g = section:option(ListValue, "gw_mode", translate("Gatewate mode"))
+g:value("server", translate("server mode"))
+g:value("client", translate("client mode"))
+g:value("off", translate("off"))
 
 local p = section:option(ListValue, "routing_algo", translate("Routing algorithm"))
 p:value("BATMAN_V", translate("BATMAN V"))
@@ -48,3 +53,6 @@ function m.on_commit(any)
 end
 
 return m
+
+
+

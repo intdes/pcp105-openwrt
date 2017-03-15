@@ -13,10 +13,6 @@ START=40
 
 USE_PROCD=1
 
-stop_service() {
-    echo none > /sys/class/net/wlan0/batman_adv/mesh_iface
-}
-
 aggregated() {
     VAL=`uci get batman-adv.bat0.aggregated_ogms`
     if [ $VAL=='0' ]; then
@@ -69,11 +65,7 @@ gw_bandwidth() {
 
 gw_mode() {
     VAL=`uci get batman-adv.bat0.gw_mode`
-    if [ $VAL == '0' ]; then
-        echo off > /sys/class/net/bat0/mesh/gw_mode
-        return 0
-    fi
-    echo on > /sys/class/net/bat0/mesh/gw_mode
+    echo $VAL > /sys/class/net/bat0/mesh/gw_mode
 }
 
 gw_sel_class() {
@@ -101,11 +93,10 @@ routing_algo() {
     echo $VAL > /sys/module/batman_adv/parameters/routing_algo
 }
 
-
-update() {
+init() {
     IP=`uci get batman-adv.bat0.ip`
-    ip link set up dev bat0
-    ip addr add $IP dev bat0
+    MASK=`uci get batman-adv.bat0.mask`
+    ifconfig bat0 $IP netmask $MASK
     aggregated
     ap_isolation
     bonding
@@ -122,6 +113,27 @@ update() {
 start_service() {
     routing_algo
     INTERFACE=`uci get batman-adv.bat0.mesh_iface`
+    while true; do
+        sleep 2
+        if ifconfig $INTERFACE | grep inet; then break
+        fi
+    done
     echo bat0 > /sys/class/net/$INTERFACE/batman_adv/mesh_iface
-    update
+    init
 }
+
+stop_service() {
+    INTERFACE=`uci get batman-adv.bat0.mesh_iface`
+    echo none > /sys/class/net/$INTERFACE/batman_adv/mesh_iface
+}
+
+restart() {
+    stop_service
+    routing_algo
+    INTERFACE=`uci get batman-adv.bat0.mesh_iface`
+    echo bat0 > /sys/class/net/$INTERFACE/batman_adv/mesh_iface
+    init
+}
+
+
+
