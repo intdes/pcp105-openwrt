@@ -13,6 +13,8 @@ interface.widget = "radio"
 interface.template  = "cbi/network_ifacelist"
 interface.nobridges = true
 
+section:option(Flag, "enable", translate("Enable this service at startup")).rmempty = false
+
 local ip = section:option(Value, "ip", translate("Node IP:"))
 ip.datatype = "list(neg(or(uciname,hostname,ip4addr)))"
 ip.placeholder = "0.0.0.0"
@@ -39,7 +41,7 @@ section:option(Flag, "bonding", translate("Bonding mode")).rmempty = false
 section:option(Flag, 'bridge_loop_avoidance', translate("Bridge loop avoidance")).rmempty = false
 section:option(Flag, "aggregated_ogms", translate("Aggregated original messages")).rmempty = false
 
-local g = section:option(ListValue, "gw_mode", translate("Gatewate mode"))
+local g = section:option(ListValue, "gw_mode", translate("Gateway mode"))
 g:value("server", translate("server mode"))
 g:value("client", translate("client mode"))
 g:value("off", translate("off"))
@@ -53,6 +55,5 @@ function m.on_commit(any)
 end
 
 return m
-
 
 

@@ -111,6 +111,11 @@ init() {
 }
 
 start_service() {
+    ENABLE=`uci get batman-adv.bat0.enable`
+    if [ $ENABLE == '0' ]; then 
+        echo "Batman-adv is set to disabled" >$2
+        return 0
+    fi
     routing_algo
     INTERFACE=`uci get batman-adv.bat0.mesh_iface`
     while true; do
@@ -134,6 +139,5 @@ restart() {
     echo bat0 > /sys/class/net/$INTERFACE/batman_adv/mesh_iface
     init
 }
-
 
 

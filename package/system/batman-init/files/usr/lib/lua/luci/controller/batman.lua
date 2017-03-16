@@ -8,3 +8,5 @@ module("luci.controller.batman", package.seeall)
 function index()
 	entry( {"admin", "services", "batman"}, cbi("batman"), _("Batman") )
 end
+
+

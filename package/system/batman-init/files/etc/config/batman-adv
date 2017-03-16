@@ -15,6 +15,6 @@ config mesh 'bat0'
 	option gw_bandwidth '10000'
 	option ip '105.105.105.10'
 	option mask '255.255.255.0'
-
+	option enable '1'
 
 
