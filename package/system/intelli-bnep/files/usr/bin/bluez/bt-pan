@@ -147,7 +147,8 @@ def main(args=None):
 			log.debug('DiscoverableTimeout = %s', prop_get(dev, 'DiscoverableTimeout'))
 		log.debug('Using local device (addr: %s): %s', dev_addr, dev.object_path)
 
-	wait_iter_noop = 3600
+	#wait_iter_noop = 3600
+	wait_iter_noop = 1
 	if opts.systemd:
 		from systemd import daemon
 		def wait_iter():
@@ -169,6 +170,8 @@ def main(args=None):
 		wait_iter.sd_ready = False
 	else: wait_iter = lambda: time.sleep(wait_iter_noop)
 	signal.signal(signal.SIGTERM, lambda sig,frm: sys.exit(0))
+	signal.signal(signal.SIGHUP, lambda sig,frm: sys.exit(0))
+	signal.signal(signal.SIGINT, lambda sig,frm: sys.exit(0))
 
 
 	if opts.call == 'server':
@@ -199,8 +202,7 @@ def main(args=None):
 					' bridge/dev: %s / %s', opts.uuid, opts.iface_name, dev_addr )
 			while True:
 				list_devices( opts.trustall )
-				time.sleep(1)
-				#wait_iter()
+				wait_iter()
 		except KeyboardInterrupt: pass
 		finally:
 			if servers:

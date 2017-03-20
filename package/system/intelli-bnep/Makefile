@@ -108,6 +108,14 @@ define Package/intelli-bnep/postinst
 
 	sleep 1
 
+	new_name="Hyrax PCP-105 $$(( $$(i2cget  -y -f 0 0x50 0x07 b) + $$(i2cget -y -f 0 0x50 0x06 b) + $$(i2cget -y -f 0 0x50 0x05 b) ))"
+	sed -i "/#Name =/a Name=$$new_name" /etc/bluetooth/main.conf
+	sync
+
+	hciconfig hci0 up
+	hciconfig hci0 name "$$new_name"
+	hciconfig hci0 down
+
 	if [ -f /etc/init.d/bnep.sh ] ; then
 		/etc/init.d/bnep.sh enable
 		sleep 1
