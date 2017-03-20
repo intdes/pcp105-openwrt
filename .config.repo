@@ -2072,7 +2072,7 @@ CONFIG_EUDEV_EXTRA_scsi_id=y
 CONFIG_EUDEV_EXTRA_v4l_id=y
 CONFIG_PACKAGE_firewall=y
 CONFIG_PACKAGE_fstools=y
-# CONFIG_PACKAGE_intelli-bnep is not set
+CONFIG_PACKAGE_intelli-bnep=m
 CONFIG_PACKAGE_intellibase=y
 CONFIG_PACKAGE_jsonfilter=y
 CONFIG_PACKAGE_libatomic=m
