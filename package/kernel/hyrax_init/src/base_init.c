@@ -178,10 +178,10 @@ static int hyrax_init(void)
 	case ( FIT_MACHINE ) :
 		switch ( iPCARevision )
 		{
-		default :
 		case ( HWREV_P1 ) :
 			fitp1_init();
 			break;
+		default :
 		case ( HWREV_A ) :
 			fita_init();
 			break;
