@@ -150,7 +150,7 @@ static struct gpio_led fit_machine_p1_leds[] = {
                 .name = "heartbeat_blue",
                 .gpio = 14,
                 .active_low = 0,
-                .default_trigger = "none",
+                .default_trigger = "default-on",
         },
         {
                 .name = "heartbeat_green",

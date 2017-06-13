@@ -147,13 +147,13 @@ static struct gpio_led fit_machine_a_leds[] = {
                 .name = "heartbeat_blue",
                 .gpio = MCP23S08_BASE+7,
                 .active_low = 0,
-                .default_trigger = "none",
+                .default_trigger = "default-on",
         },
         {
                 .name = "heartbeat_green",
                 .gpio = MCP23S08_BASE+6,
                 .active_low = 0,
-                .default_trigger = "heartbeat",
+                .default_trigger = "none",
         },
 };
 

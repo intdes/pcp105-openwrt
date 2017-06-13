@@ -129,6 +129,10 @@ do_setgpios()
 
 		PCP105P2)
 			;;
+
+		FITP1)
+			echo default-on >/sys/class/leds/heartbeat_blue/trigger
+			;;
 	esac
 }
 
