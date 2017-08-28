@@ -1904,8 +1904,9 @@ CONFIG_BUSYBOX_CONFIG_VERBOSE_RESOLUTION_ERRORS=y
 # CONFIG_BUSYBOX_CONFIG_ETHER_WAKE is not set
 # CONFIG_BUSYBOX_CONFIG_FAKEIDENTD is not set
 # CONFIG_BUSYBOX_CONFIG_FTPD is not set
-# CONFIG_BUSYBOX_CONFIG_FTPGET is not set
-# CONFIG_BUSYBOX_CONFIG_FTPPUT is not set
+CONFIG_BUSYBOX_CONFIG_FTPGET=y
+CONFIG_BUSYBOX_CONFIG_FTPPUT=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FTPGETPUT_LONG_OPTIONS=y
 # CONFIG_BUSYBOX_CONFIG_HOSTNAME is not set
 # CONFIG_BUSYBOX_CONFIG_HTTPD is not set
 CONFIG_BUSYBOX_CONFIG_IFCONFIG=y
@@ -3024,12 +3025,22 @@ CONFIG_PACKAGE_luasql-sqlite3=m
 # Node.js
 #
 CONFIG_PACKAGE_node=y
+
+#
+# Configuration
+#
+# CONFIG_NODEJS_4 is not set
+CONFIG_NODEJS_6=y
+# CONFIG_NODEJS_8 is not set
+# CONFIG_NODEJS_ICU is not set
 CONFIG_PACKAGE_node-arduino-firmata=m
 CONFIG_PACKAGE_node-cylon=m
 CONFIG_PACKAGE_node-cylon-firmata=m
 CONFIG_PACKAGE_node-cylon-gpio=m
 CONFIG_PACKAGE_node-cylon-i2c=m
 CONFIG_PACKAGE_node-hid=m
+# CONFIG_PACKAGE_node-node-red is not set
+# CONFIG_PACKAGE_node-npm is not set
 CONFIG_PACKAGE_node-serialport=m
 
 #
@@ -3831,8 +3842,8 @@ CONFIG_PACKAGE_libevent2-core=m
 CONFIG_PACKAGE_libevent2-extra=m
 CONFIG_PACKAGE_libevent2-openssl=m
 CONFIG_PACKAGE_libevent2-pthreads=m
-CONFIG_PACKAGE_libevhtp=m
-CONFIG_PACKAGE_libevhtp-1.1=m
+# CONFIG_PACKAGE_libevhtp is not set
+# CONFIG_PACKAGE_libevhtp-1.1 is not set
 CONFIG_PACKAGE_libexif=m
 CONFIG_PACKAGE_libexpat=y
 CONFIG_PACKAGE_libexslt=m
@@ -5344,8 +5355,8 @@ CONFIG_PACKAGE_rsync=y
 # CONFIG_RSYNC_acl is not set
 CONFIG_RSYNC_zlib=y
 CONFIG_PACKAGE_rsyncd=m
-# CONFIG_PACKAGE_vsftpd is not set
-# CONFIG_PACKAGE_vsftpd-tls is not set
+CONFIG_PACKAGE_vsftpd=m
+CONFIG_PACKAGE_vsftpd-tls=m
 CONFIG_PACKAGE_wget=y
 CONFIG_PACKAGE_wget-nossl=m
 
@@ -6695,6 +6706,7 @@ CONFIG_PACKAGE_kplex=m
 # CONFIG_PACKAGE_krb5-client is not set
 # CONFIG_PACKAGE_krb5-libs is not set
 # CONFIG_PACKAGE_krb5-server is not set
+# CONFIG_PACKAGE_libtins is not set
 CONFIG_PACKAGE_linknx=m
 # CONFIG_PACKAGE_lispd is not set
 CONFIG_PACKAGE_mac-telnet-client=m
