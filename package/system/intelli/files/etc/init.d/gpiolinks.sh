@@ -43,11 +43,12 @@ get_version()
     	R_PCA_C=`i2cget -f -y 0 0x50 0x11 b | cut -d'x' -f2`
 	    R_PCA_C=$R_PCA_C`i2cget -f -y 0 0x50 0x12 b | cut -d'x' -f2`
     	R_PCA_C=$R_PCA_C`i2cget -f -y 0 0x50 0x13 b | cut -d'x' -f2`
+		#NB. Hex values are lower case
 		if [[ "$R_PCA_C" == "0068c3" ]]; then
 			BOARD_TYPE="PCP105"
 		elif [[ "$R_PCA_C" == "007097" ]]; then
 			BOARD_TYPE="FIT"
-		elif [[ "$R_PCA_C" == "00778A" ]]; then
+		elif [[ "$R_PCA_C" == "00778a" ]]; then
 			BOARD_TYPE="NEC"
 		else
 			BOARD_TYPE="UNKNOWN"
@@ -66,11 +67,11 @@ get_version()
 			VERSION=$BOARD_TYPE"A"
 		else
 			#Set hw rev if an unknown value is detected
-			if [[ "$VERSION" == "PCP105" ]]; then
+			if [[ "$BOARD_TYPE" == "PCP105" ]]; then
 				VERSION=$BOARD_TYPE"P2"
-			elif [[ "$VERSION" == "FIT" ]]; then
+			elif [[ "$BOARD_TYPE" == "FIT" ]]; then
 				VERSION=$BOARD_TYPE"P1"
-			elif [[ "$VERSION" == "NEC" ]]; then
+			elif [[ "$BOARD_TYPE" == "NEC" ]]; then
 				VERSION=$BOARD_TYPE"P1"
 			else
 				VERSION=$BOARD_TYPE"P1"
