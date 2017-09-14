@@ -47,6 +47,8 @@ get_version()
 			BOARD_TYPE="PCP105"
 		elif [[ "$R_PCA_C" == "007097" ]]; then
 			BOARD_TYPE="FIT"
+		elif [[ "$R_PCA_C" == "00778A" ]]; then
+			BOARD_TYPE="NEC"
 		else
 			BOARD_TYPE="UNKNOWN"
 		fi
@@ -67,6 +69,8 @@ get_version()
 			if [[ "$VERSION" == "PCP105" ]]; then
 				VERSION=$BOARD_TYPE"P2"
 			elif [[ "$VERSION" == "FIT" ]]; then
+				VERSION=$BOARD_TYPE"P1"
+			elif [[ "$VERSION" == "NEC" ]]; then
 				VERSION=$BOARD_TYPE"P1"
 			else
 				VERSION=$BOARD_TYPE"P1"
@@ -133,6 +137,11 @@ do_setgpios()
 		FITP1)
 			echo default-on >/sys/class/leds/heartbeat_blue/trigger
 			;;
+
+		NECP1)
+			echo default-on >/sys/class/leds/heartbeat_blue/trigger
+			;;
+
 	esac
 }
 

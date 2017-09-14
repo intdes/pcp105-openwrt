@@ -86,10 +86,6 @@ else
   GRAPHITE_CONFIGURE=--without-isl --without-cloog
 endif
 
-HOST_CFLAGS += -m32
-HOST_CPPFLAGS += -m32
-HOST_LDFLAGS += -m32
-
 GCC_CONFIGURE:= \
 	SHELL="$(BASH)" \
 	$(if $(shell gcc --version 2>&1 | grep LLVM), \

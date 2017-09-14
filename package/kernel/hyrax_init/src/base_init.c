@@ -38,6 +38,7 @@
 #define PCP105					26819
 #define FIT_MACHINE				28823
 #define PCP105_CATERPILLAR		29655
+#define NEC						30602
 
 #define HWREV_P1                0x91
 #define HWREV_P2                0x92
@@ -49,6 +50,7 @@ int pcp105p1_init(void);
 int pcp105p2_init(void);
 int fitp1_init(void);
 int fita_init(void);
+int necp1_init(void);
 
 /*----- variables ----------------------------------------------------*/
 
@@ -90,6 +92,9 @@ static char *IdString( int id )
 		break;
 	case ( FIT_MACHINE ) :
 		strcpy( zString, "Fit" );
+		break;
+	case ( NEC ) :
+		strcpy( zString, "NEC" );
 		break;
 	default :
 		strcpy( zString, "Unknown" );
@@ -188,6 +193,18 @@ static int hyrax_init(void)
 
 		}
 		break;
+
+/*----- Handle NEC board ---------------------------------------------*/	
+	case ( NEC ) :
+		switch ( iPCARevision )
+		{
+		default :
+		case ( HWREV_P1 ) :
+			necp1_init();
+			break;
+		}
+		break;
+
 	}
 
 	return 0;
