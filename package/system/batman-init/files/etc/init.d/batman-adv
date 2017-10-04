@@ -15,7 +15,7 @@ USE_PROCD=1
 
 aggregated() {
     VAL=`uci get batman-adv.bat0.aggregated_ogms`
-    if [ $VAL=='0' ]; then
+    if [ $VAL == '0' ]; then
         echo disabled > /sys/class/net/bat0/mesh/aggregated_ogms
         return 0
     fi
@@ -98,7 +98,6 @@ init() {
     MASK=`uci get batman-adv.bat0.mask`
     ifconfig bat0 $IP netmask $MASK
     aggregated
-    ap_isolation
     bonding
     bridge_loop_avoidance
     fragmentation
@@ -108,12 +107,13 @@ init() {
     hop_penalty
     isolation_mark
     org_interval
+    ap_isolation
 }
 
 start_service() {
     ENABLE=`uci get batman-adv.bat0.enable`
     if [ $ENABLE == '0' ]; then 
-        echo "Batman-adv is set to disabled" >$2
+        echo "Batman-adv is set to disabled"
         return 0
     fi
     routing_algo
@@ -124,10 +124,13 @@ start_service() {
         fi
     done
     echo bat0 > /sys/class/net/$INTERFACE/batman_adv/mesh_iface
+    sleep 2
     init
+	/usr/local/bin/batman_monitor.sh &
 }
 
 stop_service() {
+	killall batman_monitor.sh
     INTERFACE=`uci get batman-adv.bat0.mesh_iface`
     echo none > /sys/class/net/$INTERFACE/batman_adv/mesh_iface
 }
@@ -137,7 +140,8 @@ restart() {
     routing_algo
     INTERFACE=`uci get batman-adv.bat0.mesh_iface`
     echo bat0 > /sys/class/net/$INTERFACE/batman_adv/mesh_iface
+    sleep 2
     init
+	/usr/local/bin/batman_monitor.sh &
 }
-
 

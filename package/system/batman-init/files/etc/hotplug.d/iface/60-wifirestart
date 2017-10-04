@@ -1,0 +1,19 @@
+BATMAN_RESTART_FILE=/var/run/batman_restart
+
+[ "$ACTION" = "ifdown" -a "$INTERFACE" = "mesh" ] && {
+        touch $BATMAN_RESTART_FILE
+		logger -t WIFI "Wifi went down, re-enable it"
+        wifi down
+		sleep 1
+        wifi up
+}
+
+[ -f $BATMAN_RESTART_FILE ] && {
+        BATMAN_IFACE=`uci get batman-adv.bat0.mesh_iface`
+        [ "$ACTION" = "ifup" -a "$DEVICE" = $BATMAN_IFACE ] && {
+                        rm $BATMAN_RESTART_FILE
+						logger -t BATMAN "Restarting BATMAN after wifi went down"
+                        /etc/init.d/batman-adv restart
+        }
+}
+

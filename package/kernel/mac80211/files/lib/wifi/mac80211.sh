@@ -130,7 +130,7 @@ config wifi-iface
     option key 'MyPASSWORD'
     option encryption 'psk2'
 	option network  'WIFI'
-	
+	option disassoc_low_ack 0
 
 EOF
 	devidx=$(($devidx + 1))
