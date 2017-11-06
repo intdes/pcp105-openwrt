@@ -1,6 +1,7 @@
 BATMAN_RESTART_FILE=/var/run/batman_restart
 
-[ "$ACTION" = "ifdown" -a "$INTERFACE" = "mesh" ] && {
+WIFI_IFACE=`uci get wireless.@wifi-iface[0].network`
+[ "$ACTION" = "ifdown" -a "$INTERFACE" = $WIFI_IFACE ] && {
         touch $BATMAN_RESTART_FILE
 		logger -t WIFI "Wifi went down, re-enable it"
         wifi down

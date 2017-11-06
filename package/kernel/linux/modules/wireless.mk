@@ -72,3 +72,22 @@ endef
 
 $(eval $(call Download,net-rtl8192su))
 $(eval $(call KernelPackage,net-rtl8192su))
+
+define KernelPackage/ath10k-kernel
+  SUBMENU:=$(WIRELESS_MENU)
+  TITLE:=Atheros 10k support
+  DEPENDS:=@PCI_SUPPORT
+  KCONFIG:
+  FILES:= \
+	$(LINUX_DIR)/drivers/net/wireless/ath/ath10k/ath10k_core.ko \
+	$(LINUX_DIR)/drivers/net/wireless/ath/ath10k/ath10k_pci.ko \
+	$(LINUX_DIR)/drivers/net/wireless/ath/ath.ko
+endef
+
+define KernelPackage/ath10k-kernel/description
+ Kernel modules for ath10k support
+endef
+
+$(eval $(call KernelPackage,ath10k-kernel))
+
+

@@ -10,9 +10,9 @@ include $(TOPDIR)/rules.mk
 UCI_VERSION=2014-06-18
 UCI_RELEASE=1
 
-PKG_NAME:=batman_init
+PKG_NAME:=btfw
 PKG_VERSION:=$(UCI_VERSION)$(if $(UCI_RELEASE),.$(UCI_RELEASE))
-PKG_RELEASE:=3
+PKG_RELEASE:=1
 PKG_REV:=e339407372ffc70b1451e4eda218c01aa95a6a7e
 
 PKG_LICENSE:=LGPLv2.1 GPLv2
@@ -27,11 +27,11 @@ include $(INCLUDE_DIR)/package.mk
 # set to 1 to enable debugging
 DEBUG=
 
-define Package/batman_init
+define Package/btfw
   SECTION:=base
   CATEGORY:=Base system
-  DEPENDS:=+libnl-tiny
-  TITLE:=BATMAN initialisation files
+  DEPENDS:=
+  TITLE:=Bluetooth firmware for the QCA6174a
 endef
 
 
@@ -43,8 +43,8 @@ define Build/Compile/Default
 endef
 Build/Compile = $(Build/Compile/Default)
 
-define Package/batman_init/install
+define Package/btfw/install
     $(CP) ./files/* $(1)/
 endef
 
-$(eval $(call BuildPackage,batman_init))
+$(eval $(call BuildPackage,btfw))
