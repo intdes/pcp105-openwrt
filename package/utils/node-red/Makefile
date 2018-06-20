@@ -6,14 +6,14 @@ include $(TOPDIR)/rules.mk
 
 PKG_NPM_NAME:=node-red
 PKG_NAME:=node-$(PKG_NPM_NAME)
-PKG_VERSION:=0.16.2
-PKG_RELEASE:=3
+PKG_VERSION:=0.18.5
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NPM_NAME)-$(PKG_VERSION).tgz
 PKG_SOURCE_URL:=http://registry.npmjs.org/$(PKG_NPM_NAME)/-/
-PKG_HASH:=a95acbd3d6216a4d37ff57d804778d966fcf84c1bfba7f54aa944a7473cd3e14
+PKG_HASH:=523cce1bbf297026e7de99d75aed02edc8983268aeb6cd8d97a630195d1d315f
 
-PKG_BUILD_DEPENDS:=node/host
+#PKG_BUILD_DEPENDS:=node/host
 PKG_USE_MIPS16:=0
 
 PKG_MAINTAINER:=Hirokazu MORIKAWA <morikw2@gmail.com>
@@ -23,12 +23,12 @@ PKG_LICENSE_FILES:=LICENSE
 include $(INCLUDE_DIR)/package.mk
 
 define Package/node-node-red
-  DEPENDS:=+node
   SUBMENU:=Node.js
   SECTION:=lang
   CATEGORY:=Languages
   TITLE:=A visual tool for wiring the Internet of Things
   URL:=http://nodered.org/
+  DEPENDS:=+node
 endef
 
 define Package/node-node-red/description
@@ -45,10 +45,13 @@ define Build/Compile
 	$(MAKE_VARS) \
 	$(MAKE_FLAGS) \
 	npm_config_arch=$(NODEJS_CPU) \
-	npm_config_nodedir=$(STAGING_DIR_HOSTPKG)/ \
-	npm_config_cache=$(STAGING_DIR_HOSTPKG)/share/node/npm-cache \
+	npm_config_nodedir=$(STAGING_DIR)/usr/ \
+	npm_config_cache=$(TMP_DIR)/npm-cache \
+	npm_config_tmp=$(TMP_DIR)/npm-tmp \
 	PREFIX="$(PKG_INSTALL_DIR)/usr/" \
 	npm install --build-from-source --target_arch=$(NODEJS_CPU) -g $(DL_DIR)/$(PKG_SOURCE)
+	rm -rf $(TMP_DIR)/npm-tmp
+	rm -rf $(TMP_DIR)/npm-cache
 endef
 
 define Package/node-node-red/install
