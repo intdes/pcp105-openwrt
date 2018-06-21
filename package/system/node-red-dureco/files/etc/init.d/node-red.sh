@@ -21,6 +21,14 @@ USE_PROCD=1
 
 start_service()
 {
+		#Update landing page if necessary
+		uci show uhttpd.main.index_page
+		if [ ! $? -eq 0 ]; then 
+	        uci set uhttpd.main.index_page=landing.html
+	        uci commit
+	        /etc/init.d/uhttpd restart
+		fi
+
         export HOME="/root"
         node-red < /dev/null 2>&1 >/dev/null &
         exit 0

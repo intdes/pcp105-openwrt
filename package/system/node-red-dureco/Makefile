@@ -30,7 +30,7 @@ DEBUG=
 define Package/node-red-dureco
   SECTION:=base
   CATEGORY:=Base system
-  DEPENDS:=
+  DEPENDS:= +landing-page +node-red
   TITLE:=Node-red dureco
 endef
 
