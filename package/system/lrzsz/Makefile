@@ -10,10 +10,10 @@ include $(TOPDIR)/rules.mk
 UCI_VERSION=2014-06-18
 UCI_RELEASE=1
 
-PKG_NAME:=node-red-dureco
+PKG_NAME:=lrzsz
 PKG_VERSION:=$(UCI_VERSION)$(if $(UCI_RELEASE),.$(UCI_RELEASE))
-PKG_RELEASE:=4
-PKG_REV:=e339407372ffc70b1451e4eda218c01aa95a6a7e
+PKG_RELEASE:=1
+PKG_REV:=e339407372ffc70b1451e4eda218c01aa95a6a7f
 
 PKG_LICENSE:=LGPLv2.1 GPLv2
 PKG_LICENSE_FILES:=
@@ -27,13 +27,12 @@ include $(INCLUDE_DIR)/package.mk
 # set to 1 to enable debugging
 DEBUG=
 
-define Package/node-red-dureco
+define Package/lrzsz
   SECTION:=base
   CATEGORY:=Base system
-  DEPENDS:= +landing-page +node-red
-  TITLE:=Node-red dureco
+  DEPENDS:=
+  TITLE:=Serial file transfer utilities
 endef
-
 
 define Build/Prepare
 endef
@@ -43,8 +42,9 @@ define Build/Compile/Default
 endef
 Build/Compile = $(Build/Compile/Default)
 
-define Package/node-red-dureco/install
-    $(CP) ./files/* $(1)/
+
+define Package/lrzsz/install
+	$(CP) ./files/* $(1)/
 endef
 
-$(eval $(call BuildPackage,node-red-dureco))
+$(eval $(call BuildPackage,lrzsz))

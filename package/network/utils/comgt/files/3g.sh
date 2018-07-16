@@ -15,6 +15,8 @@ proto_3g_init_config() {
 	ppp_generic_init_config
 	proto_config_add_string "device:device"
 	proto_config_add_string "apn"
+	proto_config_add_string "username"
+	proto_config_add_string "password"
 	proto_config_add_string "service"
 	proto_config_add_string "pincode"
 	proto_config_add_string "dialnumber"
@@ -26,6 +28,8 @@ proto_3g_setup() {
 
 	json_get_var device device
 	json_get_var apn apn
+	json_get_var username username
+	json_get_var password password
 	json_get_var service service
 	json_get_var pincode pincode
 	json_get_var dialnumber dialnumber
@@ -37,6 +41,22 @@ proto_3g_setup() {
 	}
 
 	case "$service" in
+		lte)
+			chat="/etc/chatscripts/4g.chat"
+
+			if [ -n "$pincode" ]; then
+				PINCODE="$pincode" gcom -d "$device" -s /etc/gcom/setpin.gcom || {
+					proto_notify_error "$interface" PIN_FAILED
+					proto_block_restart "$interface"
+					return 1
+				}
+			fi
+			[ -n "$MODE" ] && gcom -d "$device" -s /etc/gcom/setmode.gcom
+
+			if [ -z "$dialnumber" ]; then
+				dialnumber="*99***4#"
+			fi
+		;;
 		cdma|evdo)
 			chat="/etc/chatscripts/evdo.chat"
 		;;
@@ -89,7 +109,7 @@ proto_3g_setup() {
 		;;
 	esac
 
-	connect="${apn:+USE_APN=$apn }DIALNUMBER=$dialnumber /usr/sbin/chat -t5 -v -E -f $chat"
+	connect="${apn:+USE_APN=$apn }${username:+USE_USER=$username }${password:+USE_PASS=$password }DIALNUMBER=$dialnumber /usr/sbin/chat -t5 -v -E -f $chat"
 	ppp_generic_setup "$interface" \
 		noaccomp \
 		nopcomp \

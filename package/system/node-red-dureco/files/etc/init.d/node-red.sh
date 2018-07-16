@@ -26,6 +26,7 @@ start_service()
 		if [ ! $? -eq 0 ]; then 
 	        uci set uhttpd.main.index_page=landing.html
 	        uci commit
+			sync
 	        /etc/init.d/uhttpd restart
 		fi
 
