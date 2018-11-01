@@ -1,0 +1,62 @@
+
+find_cmdline_parameter()
+{
+        CHECK=$1
+
+        COUNT=1
+        DONE=0
+        FOUND=1
+        while [ $DONE -eq 0 ]; do
+                PARAM=`cat /proc/cmdline | cut -d' ' -f$COUNT`
+                if [ ! -z $PARAM ]; then
+                        echo $PARAM | grep -q $CHECK
+                        if [ $? -eq 0 ]; then
+                                FOUND=0
+                                DONE=1
+                        fi
+                else
+                        DONE=1
+                fi
+                COUNT=$(( $COUNT + 1 ))
+        done
+        return $FOUND
+}
+
+get_hw_info()
+{
+        PCA_ID=0
+        PCA_REVISION=0x00
+
+        find_cmdline_parameter pca_id
+        if [ $? -eq 0 ]; then
+                PCA_ID=`echo $PARAM | cut -d'=' -f2`
+        fi
+
+        find_cmdline_parameter pca_revision
+        if [ $? -eq 0 ]; then
+                PCA_REVISION=`echo $PARAM | cut -d'=' -f2`
+        fi
+        PCA_REVISION=`printf %d $PCA_REVISION`
+
+        HWREV="P1"
+        if [ $PCA_ID -eq 26819 ]; then
+                BOARD_TYPE="PCP105"
+                HWREV="P2"
+        elif [ $PCA_ID -eq 28823 ]; then
+                BOARD_TYPE="FIT"
+        elif [ $PCA_ID -eq 30602 ]; then
+                BOARD_TYPE="NEC"
+        else
+                BOARD_TYPE="UNKNOWN"
+        fi
+
+
+        if [ $PCA_REVISION -ge 145 -a $PCA_REVISION -le 159 ]; then
+                HWREV=P$(( $PCA_REVISION - 144 ))
+        elif [ $PCA_REVISION -ge 160 -a $PCA_REVISION -le 185 ]; then
+                HWREV=`printf "\x$(printf %x $(( $PCA_REVISION-95)) )"`
+        fi
+
+        HWINFO=$BOARD_TYPE$HWREV
+}
+

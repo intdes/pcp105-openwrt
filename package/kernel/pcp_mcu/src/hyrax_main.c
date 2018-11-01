@@ -64,6 +64,7 @@
 static int hyrax_charger_release( struct inode *inode, struct file *file);
 static int hyrax_charger_open( struct inode *inode, struct file *file);
 #endif
+static irqreturn_t hyrax_irq_handler(int irq, void *dev_id);
 
 /*----- variables ----------------------------------------------------*/
 
@@ -164,9 +165,114 @@ static int __exit hyrax_charger_remove(struct i2c_client *i2c)
 	class_destroy(psClass);
 	unregister_chrdev( HYRAX_CHARGER_MAJOR, HYRAX_CHARGER_NAME );
 #endif
+    gpiochip_remove(&priv->gc);
+
+    irq_domain_remove(priv->irq_domain);
+
 	kfree(priv);
 
 	return 0;
+}
+
+static int hyrax_direction_input(struct gpio_chip *chip, unsigned gpio)
+{
+	return 0;
+}
+
+static void hyrax_irq_mask(struct irq_data *d)
+{
+    struct hyrax_priv *priv = irq_data_get_irq_chip_data(d);
+
+    priv->irq_mask &= ~(1 << (d->irq - priv->irq_base));
+}
+
+static void hyrax_irq_unmask(struct irq_data *d)
+{
+    struct hyrax_priv *priv = irq_data_get_irq_chip_data(d);
+
+    priv->irq_mask |= 1 << (d->irq - priv->irq_base);
+}
+
+static void hyrax_irq_bus_lock(struct irq_data *d)
+{
+    struct hyrax_priv *priv = irq_data_get_irq_chip_data(d);
+
+    mutex_lock(&priv->irq_lock);
+}
+
+static void hyrax_irq_bus_sync_unlock(struct irq_data *d)
+{
+    struct hyrax_priv *priv = irq_data_get_irq_chip_data(d);
+
+    mutex_unlock(&priv->irq_lock);
+}
+
+static int hyrax_irq_set_type(struct irq_data *d, unsigned int type)
+{
+    struct hyrax_priv *priv = irq_data_get_irq_chip_data(d);
+    uint16_t level = d->irq - priv->irq_base;
+    uint16_t mask = 1 << level;
+
+    if (!(type & IRQ_TYPE_EDGE_BOTH)) {
+        dev_err(&priv->i2c->dev, "irq %d: unsupported type %d\n",
+            d->irq, type);
+        return -EINVAL;
+    }
+
+    if (type & IRQ_TYPE_EDGE_FALLING)
+        priv->irq_trig_fall |= mask;
+    else
+        priv->irq_trig_fall &= ~mask;
+
+    if (type & IRQ_TYPE_EDGE_RISING)
+        priv->irq_trig_raise |= mask;
+    else
+        priv->irq_trig_raise &= ~mask;
+
+    return 0;
+}
+
+static struct irq_chip hyrax_irq_chip = {
+    .name           = "hyrax_gpio",
+    .irq_mask       = hyrax_irq_mask,
+    .irq_unmask     = hyrax_irq_unmask,
+    .irq_bus_lock   = hyrax_irq_bus_lock,
+    .irq_bus_sync_unlock    = hyrax_irq_bus_sync_unlock,
+    .irq_set_type   = hyrax_irq_set_type,
+};
+
+static inline void activate_irq(int irq)
+{
+    irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
+}
+
+
+static int hyrax_irqdomain_map(struct irq_domain *d,
+        unsigned int irq, irq_hw_number_t hwirq)
+{
+    struct hyrax_priv *priv = (struct hyrax_priv *) d->host_data;
+
+	priv->irq_base = irq;
+
+	irq_set_chip_data(irq, priv);
+	irq_set_chip_and_handler(irq, &hyrax_irq_chip,
+				 handle_edge_irq);
+	irq_set_nested_thread(irq, 1);
+	activate_irq(irq);
+
+    return 0;
+}
+
+static const struct irq_domain_ops hyrax_irq_ops = {
+    .map = hyrax_irqdomain_map,
+    .xlate = irq_domain_xlate_onetwocell,
+};
+
+static int hyrax_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
+{
+	struct hyrax_priv *priv = container_of(chip, struct hyrax_priv, gc);
+
+    return irq_create_mapping(priv->irq_domain, offset);
 }
 
 /*F*********************************************************************
@@ -189,6 +295,7 @@ static int hyrax_charger_probe(struct i2c_client *i2c,
 {
     struct hyrax_priv *priv;
 	int ret = 0;
+	int irq;
 
 /*----- Allocate private memory struct -------------------------------*/
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
@@ -216,6 +323,41 @@ static int hyrax_charger_probe(struct i2c_client *i2c,
 	hyrax_init_wdt( i2c );
 #endif
 
+/*----- Initialise gpio interrupt ------------------------------------*/
+	mutex_init(&priv->irq_lock);
+    priv->irq_domain = irq_domain_add_simple( NULL, 1, 0, &hyrax_irq_ops, priv);
+	if ( !priv->irq_domain )
+	{
+        printk( KERN_ERR "%s: Error creating irq domain\n", dev_info );
+		goto error_out;
+	}
+
+/*----- Initialise irq -----------------------------------------------*/
+	if ( (ret=request_threaded_irq(i2c->irq, hyrax_irq_handler,
+		hyrax_read_status,
+		IRQF_TRIGGER_RISING | IRQF_SHARED, "hyrax_irq", priv)))
+	{
+        printk( KERN_ERR "%s: Error %d initialising irq %d\n", dev_info, ret, i2c->irq );
+	}
+
+/*----- Initialise gpio ----------------------------------------------*/
+	priv->gc.label = "hyrax_mcu_gpio";
+    priv->gc.request = gpiochip_generic_request;
+    priv->gc.free = gpiochip_generic_free;
+	priv->gc.base = -1;
+	priv->gc.ngpio = 1;
+	priv->gc.owner = THIS_MODULE;
+
+    priv->gc.get = hyrax_gpio_get;
+    priv->gc.direction_input = hyrax_direction_input;
+	priv->gc.to_irq = hyrax_gpio_to_irq;
+
+    ret = gpiochip_add(&priv->gc);
+    if (ret)
+        goto error_gpio;
+
+	hyrax_read_status(0, priv);
+
 #ifdef SUPPORT_FS
 /*----- Register /dev/v2v device ------------------------------------*/
 	cdev_init( &priv->cdev, &hyrax_charger_fops );
@@ -223,7 +365,7 @@ static int hyrax_charger_probe(struct i2c_client *i2c,
     {
         printk( KERN_ERR "%s: Error registering character device\n", dev_info );
         ret = -EIO;
-		goto error_probe;
+		goto error_class;
     }
 
 /*----- Instantiate class and device so dev entry is created --------*/
@@ -246,10 +388,17 @@ error_device:
 error_class:
 	unregister_chrdev( HYRAX_CHARGER_MAJOR, HYRAX_CHARGER_NAME );
 #endif
+error_gpio:
+    irq_domain_remove(priv->irq_domain);
+error_out:
     dev_err(&i2c->dev, "probe failed\n");
 	kfree(priv);
-error_out:
     return ret;
+}
+
+static irqreturn_t hyrax_irq_handler(int irq, void *dev_id)
+{
+    return IRQ_WAKE_THREAD;
 }
 
 static const struct of_device_id hyrax_charger_dt_ids[] = {

@@ -1,6 +1,8 @@
 #ifndef hyrax_driver_h
 #define hyrax_driver_h
 
+#include <linux/gpio.h>
+
 /*----- context ------------------------------------------------------*/
 
 typedef unsigned char UCHAR;
@@ -50,11 +52,19 @@ enum PH_STATUS {
 #define MAX_FILENAME_LENGTH				256
 
 struct hyrax_priv {
+	struct gpio_chip gc;
     struct i2c_client *i2c;
 	struct watchdog_device wdt;
 	struct cdev cdev;
 	char zFileName[MAX_FILENAME_LENGTH+1];
 	int iRevision;
+    uint16_t irq_mask;
+    uint16_t irq_stat;
+    uint16_t irq_trig_raise;
+    uint16_t irq_trig_fall;
+    int irq_base;
+    struct mutex irq_lock;
+	struct irq_domain *irq_domain;
 };
 
 /*----- prototypes ---------------------------------------------------*/

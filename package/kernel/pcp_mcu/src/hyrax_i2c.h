@@ -7,6 +7,7 @@
 
 #define IC_WATCHDOG_INIT			0x03
 #define IC_WATCHDOG_KICK			0x04
+#define IC_INTERRUPT_STATUS			0x08
 
 #define IC_REG_DEVICE_STATE			0x80
 #define IC_REG_BOOT_READ_DATA		0x81
@@ -25,6 +26,9 @@ int SetWatchdogTimeout( struct device *dev, WORD iTimeout );
 int GetWatchdogTimeout( struct device *dev );
 int KickWatchdog( struct device *dev );
 BOOL HardwareProbe( struct device *dev );
+
+irqreturn_t hyrax_read_status(int irq, void *dev_id);
+int hyrax_gpio_get(struct gpio_chip *gc, unsigned off);
 
 #endif	//hyrax_i2c_h
 

@@ -1,0 +1,212 @@
+diff -rupN fstools-2018-05-23-orig/CMakeLists.txt fstools-2018-05-23/CMakeLists.txt
+--- fstools-2018-05-23-orig/CMakeLists.txt	2018-10-11 14:30:22.033581448 +1000
++++ fstools-2018-05-23/CMakeLists.txt	2018-11-01 08:43:53.415139602 +1000
+@@ -14,6 +14,7 @@ ADD_LIBRARY(fstools SHARED
+ 		libfstools/mount.c
+ 		libfstools/ubi.c
+ 		libfstools/rootdisk.c
++		libfstools/rootdisk_sep.c
+ 		libfstools/find.c)
+ TARGET_LINK_LIBRARIES(fstools ubox)
+ INSTALL(TARGETS fstools LIBRARY DESTINATION lib)
+diff -rupN fstools-2018-05-23-orig/jffs2reset.c fstools-2018-05-23/jffs2reset.c
+--- fstools-2018-05-23-orig/jffs2reset.c	2018-10-11 14:30:22.033581448 +1000
++++ fstools-2018-05-23/jffs2reset.c	2018-11-01 09:24:15.311460657 +1000
+@@ -40,6 +40,8 @@ ask_user(void)
+ 	return 0;
+ }
+ 
++int overlay_mount_fs(struct volume *v);
++
+ static int jffs2_reset(struct volume *v, int reset)
+ {
+ 	char *mp;
+@@ -51,8 +53,11 @@ static int jffs2_reset(struct volume *v,
+ 		overlay_delete(mp, false);
+ 		mount(mp, "/", NULL, MS_REMOUNT, 0);
+ 	} else {
+-		ULOG_INFO("%s is not mounted\n", v->blk);
+-		return jffs2_mark(v);
++		ULOG_INFO("%s is not mounted, mounting and erasing files\n", v->blk);
++//		return jffs2_mark(v);
++		overlay_mount_fs(v);
++		overlay_delete("/tmp/overlay", true);
++		return 0;
+ 	}
+ 
+ 	if (reset) {
+@@ -119,7 +124,8 @@ int main(int argc, char **argv)
+ 		return -1;
+ 	}
+ 
+-	v = volume_find("rootfs_data");
++	//v = volume_find("rootfs_data");
++	v = volume_find("/dev/mmcblk0p3");
+ 	if (!v) {
+ 		ULOG_ERR("MTD partition 'rootfs_data' not found\n");
+ 		return -1;
+diff -rupN fstools-2018-05-23-orig/libfstools/overlay.c fstools-2018-05-23/libfstools/overlay.c
+--- fstools-2018-05-23-orig/libfstools/overlay.c	2018-10-11 14:30:22.033581448 +1000
++++ fstools-2018-05-23/libfstools/overlay.c	2018-11-01 08:43:53.415139602 +1000
+@@ -332,7 +332,8 @@ jffs2_switch(struct volume *v)
+ 	return 0;
+ }
+ 
+-static int overlay_mount_fs(struct volume *v)
++int overlay_mount_fs(struct volume *v);
++int overlay_mount_fs(struct volume *v)
+ {
+ 	char *fstype = overlay_fs_name(volume_identify(v));
+ 
+diff -rupN fstools-2018-05-23-orig/libfstools/rootdisk_sep.c fstools-2018-05-23/libfstools/rootdisk_sep.c
+--- fstools-2018-05-23-orig/libfstools/rootdisk_sep.c	1970-01-01 10:00:00.000000000 +1000
++++ fstools-2018-05-23/libfstools/rootdisk_sep.c	2018-11-01 08:43:53.415139602 +1000
+@@ -0,0 +1,125 @@
++/*
++ * Copyright (C) 2016 Felix Fietkau <nbd@nbd.name>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License version 2.1
++ * as published by the Free Software Foundation
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#define F2FS_MINSIZE	(100 * 1024 * 1024)
++#define _FILE_OFFSET_BITS 64
++
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <sys/ioctl.h>
++#include <sys/mount.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <dirent.h>
++#include <fcntl.h>
++#include <unistd.h>
++
++#include "libfstools.h"
++#include "volume.h"
++
++#include <linux/loop.h>
++
++struct rootdev_volume {
++	struct volume v;
++	uint64_t offset;
++	char loop_name[32];
++};
++
++static char *rootdev;
++static struct driver rootdisk_sep_driver;
++
++#define MAX_PATH			512
++
++static char zLocalName[MAX_PATH+1];
++
++static struct volume *rootdisk_sep_volume_find(char *name)
++{
++	struct rootdev_volume *p;
++
++	strncpy( zLocalName, name, MAX_PATH );
++	rootdev = zLocalName;
++
++	if (strstr(rootdev, "mmcblk0p3") == NULL )
++		return NULL;
++
++	p = calloc(1, sizeof(*p));
++	p->v.drv = &rootdisk_sep_driver;
++	p->v.name = "rootfs_data";
++
++	p->offset = 0;
++
++	return &p->v;
++}
++
++static int rootdisk_sep_volume_identify(struct volume *v)
++{
++	struct rootdev_volume *p = container_of(v, struct rootdev_volume, v);
++	int ret = FS_NONE;
++	uint32_t magic = 0;
++	size_t n;
++	FILE *f;
++
++	f = fopen(rootdev, "r");
++	if (!f)
++		return ret;
++
++	fseeko(f, p->offset + 0x400, SEEK_SET);
++	n = fread(&magic, sizeof(magic), 1, f);
++	if (n != 1)
++		return -1;
++
++	if (magic == cpu_to_le32(0xF2F52010))
++		ret = FS_F2FS;
++
++	magic = 0;
++	fseeko(f, p->offset + 0x438, SEEK_SET);
++	n = fread(&magic, sizeof(magic), 1, f);
++	if (n != 1)
++		return -1;
++	if ((le32_to_cpu(magic) & 0xffff) == 0xef53)
++		ret = FS_EXT4;
++
++	fclose(f);
++
++	return ret;
++}
++
++static int rootdisk_sep_volume_init(struct volume *v)
++{
++//	char str[128];
++	int ret = 0;
++
++	v->type = BLOCKDEV;
++	v->blk = rootdev;
++
++	switch (rootdisk_sep_volume_identify(v)) {
++	case FS_NONE:
++		ULOG_INFO("rootdisk_sep overlay filesystem has not been formatted yet\n");
++//		snprintf(str, sizeof(str), "mkfs.ext4 -q -L rootfs_data %s", v->blk);
++//		ret = system(str);
++		break;
++	default:
++		break;
++	}
++	return ret;
++}
++
++static struct driver rootdisk_sep_driver = {
++	.name = "rootdisk_sep",
++	.find = rootdisk_sep_volume_find,
++	.init = rootdisk_sep_volume_init,
++	.identify = rootdisk_sep_volume_identify,
++};
++
++DRIVER(rootdisk_sep_driver);
+diff -rupN fstools-2018-05-23-orig/mount_root.c fstools-2018-05-23/mount_root.c
+--- fstools-2018-05-23-orig/mount_root.c	2018-10-11 14:30:22.033581448 +1000
++++ fstools-2018-05-23/mount_root.c	2018-11-01 08:43:53.415139602 +1000
+@@ -31,7 +31,8 @@ static int
+ start(int argc, char *argv[1])
+ {
+ 	struct volume *root;
+-	struct volume *data = volume_find("rootfs_data");
++//	struct volume *data = volume_find("rootfs_data");
++	struct volume *data = volume_find("/dev/mmcblk0p3");
+ 	struct stat s;
+ 
+ 	if (!getenv("PREINIT") && stat("/tmp/.preinit", &s))
+@@ -101,7 +102,8 @@ stop(int argc, char *argv[1])
+ static int
+ done(int argc, char *argv[1])
+ {
+-	struct volume *v = volume_find("rootfs_data");
++//	struct volume *v = volume_find("rootfs_data");
++	struct volume *v = volume_find("/dev/mmcblk0p3");
+ 
+ 	if (!v)
+ 		return -1;

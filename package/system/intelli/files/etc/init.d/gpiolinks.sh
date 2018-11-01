@@ -13,13 +13,14 @@ START=15
 
 USE_PROCD=1
 
+. /usr/local/bin/common.shlib
+
 LINKS_DIR=/var/etc/gpiolinks/
 HOSTTYPE=/var/etc/hosttype
 
 start_service()
 {
 	do_hosttype
-	do_platform_init	
 	do_makelinks
 	do_setgpios
 	exit 0
@@ -31,104 +32,21 @@ stop_service()
 	exit 0
 }
 
-get_version()
-{
-	PROTOCOL=`i2cget -f -y 0 0x50 0x7f b | cut -d'x' -f2`
-	if [[ "$PROTOCOL" == "ff" ]] ; then
-		BOARD_TYPE="UNKNOWN"
-		VERSION=$BOARD_TYPE"P1"
-		R_PCA_C="0"
-		VER_ENC="0"
-	else
-    	R_PCA_C=`i2cget -f -y 0 0x50 0x11 b | cut -d'x' -f2`
-	    R_PCA_C=$R_PCA_C`i2cget -f -y 0 0x50 0x12 b | cut -d'x' -f2`
-    	R_PCA_C=$R_PCA_C`i2cget -f -y 0 0x50 0x13 b | cut -d'x' -f2`
-		#NB. Hex values are lower case
-		if [[ "$R_PCA_C" == "0068c3" ]]; then
-			BOARD_TYPE="PCP105"
-		elif [[ "$R_PCA_C" == "007097" ]]; then
-			BOARD_TYPE="FIT"
-		elif [[ "$R_PCA_C" == "00778a" ]]; then
-			BOARD_TYPE="NEC"
-		else
-			BOARD_TYPE="UNKNOWN"
-		fi
-
-		VER_ENC=`i2cget -f -y 0 0x50 0x14 b | cut -d'x' -f2`
-		if [[ "$VER_ENC" == "91" ]] ; then
-			VERSION=$BOARD_TYPE"P1"
-		elif [[ "$VER_ENC" == "92" ]] ; then
-			VERSION=$BOARD_TYPE"P2"
-		elif [[ "$VER_ENC" == "93" ]] ; then
-			VERSION=$BOARD_TYPE"P3"
-		elif [[ "$VER_ENC" == "94" ]] ; then
-			VERSION=$BOARD_TYPE"P4"
-		elif [[ "$VER_ENC" == "a0" ]] ; then
-			VERSION=$BOARD_TYPE"A"
-		else
-			#Set hw rev if an unknown value is detected
-			if [[ "$BOARD_TYPE" == "PCP105" ]]; then
-				VERSION=$BOARD_TYPE"P2"
-			elif [[ "$BOARD_TYPE" == "FIT" ]]; then
-				VERSION=$BOARD_TYPE"P1"
-			elif [[ "$BOARD_TYPE" == "NEC" ]]; then
-				VERSION=$BOARD_TYPE"P1"
-			else
-				VERSION=$BOARD_TYPE"P1"
-			fi
-		fi
-	fi
-}
-
-waitfor()
-{	
-	FILE=$1
-	READY=0
-	TIMEOUT=5
-	while [ $READY -eq 0 ]; do
-		if [ -e $FILE ]; then
-			READY=1
-			continue
-		fi
-		sleep 1
-		TIMEOUT=$(( $TIMEOUT - 1 ))
-		if [ $TIMEOUT -eq 0 ]; then
-			break
-		fi
-	done
-}
-
 do_hosttype()
 {
-	insmod /lib/modules/4.4.7/i2c-designware-core.ko
-	insmod /lib/modules/4.4.7/i2c-designware-platform.ko
-	waitfor /dev/i2c-0
-
 	echo "-Setting host type..."
 	# set unit type
+	get_hw_info
 	get_version
-	HOSTNAME=$VERSION
 	mkdir -p /var/etc
-	echo -n $HOSTNAME > $HOSTTYPE
-
-	rmmod i2c-designware-platform
-	rmmod i2c-designware-core
-}
-
-do_platform_init()
-{
-	insmod /lib/modules/4.4.7/hyrax_init.ko iPCARevision=0x$VER_ENC iPCAId=0x$R_PCA_C
-	insmod /lib/modules/4.4.7/i2c-designware-core.ko
-	insmod /lib/modules/4.4.7/i2c-designware-platform.ko
+	echo -n $HWINFO > $HOSTTYPE
 }
 
 do_setgpios()
 {
 	echo "-Setting gpios..."
-	# get hosttype
-	HOSTNAME="$(cat $HOSTTYPE)"
 
-	case $HOSTNAME in
+	case $HWINFO in
 		PCP105P1)
 			;;
 
@@ -136,11 +54,9 @@ do_setgpios()
 			;;
 
 		FITP1)
-			echo default-on >/sys/class/leds/heartbeat_blue/trigger
 			;;
 
 		NECP1)
-			echo default-on >/sys/class/leds/heartbeat_blue/trigger
 			;;
 
 	esac
@@ -149,11 +65,10 @@ do_setgpios()
 do_makelinks()
 {
 	echo "-Making links..."
-	# get hosttype
-	HOSTNAME="$(cat $HOSTTYPE)"
 	mkdir -p $LINKS_DIR
 
-	case $HOSTNAME in
+    case "$HWINFO" in
+
 		PCP105P1)
 			;;
 

@@ -105,6 +105,8 @@ void ReadSegment(BYTE *data, seg_item_t *psSegInfo, const char *filename);
 
 static seg_item_t asSegList[ MAX_SEGMENTS ];
 int iGlobalTotalSize = 0;
+static int iFailSafeState = 0;
+static int iLastFailSafeState = 0;
 
 /***********************************************************************
 *   PUBLIC FUNCTIONS
@@ -1099,4 +1101,60 @@ void DumpMemory( int iAddress, BYTE *pData, int iBytes)
     printk( KERN_INFO "%s\n", zData );
 }
 
+/*F*********************************************************************
+* NAME: irqreturn_t hyrax_read_status(int irq, void *dev_id)
+*
+* DESCRIPTION:
+*	Read interrupt status register
+*
+* INPUTS:
+*
+* OUTPUTS:
+*   None.
+*
+* NOTES:
+*
+*F*/
+
+#define I2C_FAILSAFE_INTERRUPT			0x10
+#define I2C_FAILSAFE_STATE				0x01
+
+irqreturn_t hyrax_read_status(int irq, void *dev_id)
+{
+    struct hyrax_priv *priv = (struct hyrax_priv *) dev_id;
+    struct i2c_client *i2c = priv->i2c;
+	int iState;
+    uint16_t iLevel;
+    uint16_t iChanged;
+    uint16_t iPending;
+
+	iState = i2c_smbus_read_byte_data( i2c, IC_INTERRUPT_STATUS );
+
+	iFailSafeState = TOBOOL(iState & I2C_FAILSAFE_STATE);
+	if ( ( iState & I2C_FAILSAFE_INTERRUPT ) != 0 )
+	{
+		iChanged = iFailSafeState ^ iLastFailSafeState;
+		iPending = (iLastFailSafeState & priv->irq_trig_fall) |
+				   (iFailSafeState & priv->irq_trig_raise);
+		iPending &= iChanged;		
+		iPending &= priv->irq_mask;
+		if ( iPending )
+		{
+			do {
+				iLevel = __ffs(iPending);
+				handle_nested_irq(iLevel + priv->irq_base);
+
+				iPending &= ~(1 << iLevel);
+			} while (iPending);
+		}
+	}
+	iLastFailSafeState = iFailSafeState;
+    return IRQ_HANDLED;
+}
+
+
+int hyrax_gpio_get(struct gpio_chip *gc, unsigned off)
+{
+	return ( iFailSafeState );
+}
 

@@ -1,0 +1,26 @@
+diff -rupN fstools-2018-05-23/libfstools/rootdisk.c fstools-2018-05-23-new/libfstools/rootdisk.c
+--- fstools-2018-05-23/libfstools/rootdisk.c	2018-10-08 12:28:55.000000000 +1000
++++ fstools-2018-05-23-new/libfstools/rootdisk.c	2018-10-09 11:08:29.366167529 +1000
+@@ -107,17 +107,19 @@ static int get_squashfs(struct squashfs_
+ 	return 0;
+ }
+ 
++#define DONT_USE_F2FS
++
+ static bool rootdisk_use_f2fs(struct rootdev_volume *p)
+ {
+-	uint64_t size = 0;
+ 	bool ret = false;
++#ifndef DONT_USE_F2FS
++	uint64_t size = 0;
+ 	int fd;
+-
+ 	fd = open(rootdev, O_RDONLY);
+ 	if (ioctl(fd, BLKGETSIZE64, &size) == 0)
+ 		ret = size - p->offset > F2FS_MINSIZE;
+ 	close(fd);
+-
++#endif
+ 	return ret;
+ }
+ 
