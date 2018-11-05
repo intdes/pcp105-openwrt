@@ -41,7 +41,7 @@ set_state() {
 			;;
 		done)
 			if [ $FLASH -eq 1 ]; then
-				status_led_set_heartbeat
+				status_led_set_timer 500 500
 			else
 				status_led_on
 			fi
