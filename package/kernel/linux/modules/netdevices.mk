@@ -870,3 +870,16 @@ define KernelPackage/spi-ks8995/description
 endef
 
 $(eval $(call KernelPackage,spi-ks8995))
+
+
+define KernelPackage/ath3k
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Atheros 3k bluetooth firmware loader
+  DEPENDS:=
+  KCONFIG:=CONFIG_BT_ATH3K
+  FILES:=$(LINUX_DIR)/drivers/bluetooth/ath3k.ko
+  AUTOLOAD:=$(call AutoProbe,ath3k)
+endef
+
+$(eval $(call KernelPackage,ath3k))
+
