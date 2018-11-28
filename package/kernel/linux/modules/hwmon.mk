@@ -124,7 +124,7 @@ define KernelPackage/hwmon-ads1015
   SUBMENU:=$(HWMON_MENU)
   TITLE:=ADS1015 monitoring support
   FILES:=$(LINUX_DIR)/drivers/hwmon/ads1015.ko
-  AUTOLOAD:=$(call AutoLoad,30,ads1015,1)
+  AUTOLOAD:=$(call AutoLoad,31,ads1015,1)
 endef
 
 define KernelPackage/hwmon-ads1015/description
