@@ -120,11 +120,17 @@ ucidef_set_interface_ppp() {
 	local iface="$2"
 	local proto="$3"
 	local device="$4"
+	if [ $# -eq 5 ]; then
+		local mtu="$5"
+	fi
 
 	json_select_object "$name"
 	json_add_string ifname "$iface"
 	json_add_string protocol "$proto"
 	json_add_string device "$device"
+	if [ $# -eq 5 ]; then
+		json_add_string mtu "$mtu"
+	fi
 
 	json_select ..
 	json_select ..
