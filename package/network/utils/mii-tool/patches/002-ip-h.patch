@@ -1,0 +1,11 @@
+diff -rupN mii-tool-2016-10-06-115f1af2494ded1fcd21c8419d5e289bc4df380f/iptunnel.c mii-tool-2016-10-06-115f1af2494ded1fcd21c8419d5e289bc4df380f-new/iptunnel.c
+--- mii-tool-2016-10-06-115f1af2494ded1fcd21c8419d5e289bc4df380f/iptunnel.c	2018-11-29 15:18:56.709492880 +1000
++++ mii-tool-2016-10-06-115f1af2494ded1fcd21c8419d5e289bc4df380f-new/iptunnel.c	2019-01-22 09:36:01.166309446 +1000
+@@ -30,6 +30,7 @@
+ #include <net/if.h>
+ #include <net/if_arp.h>
+ #include <linux/types.h>
++#include <linux/ip.h>
+ #include <linux/if_tunnel.h>
+ 
+ #include "config.h"

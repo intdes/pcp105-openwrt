@@ -56,11 +56,11 @@ generate_static_network() {
 
 addr_offset=2
 generate_network() {
-	local ifname macaddr protocol type ipaddr netmask device
+	local ifname macaddr protocol type ipaddr netmask device mtu
 
 	json_select network
 		json_select "$1"
-			json_get_vars ifname macaddr protocol ipaddr netmask device
+			json_get_vars ifname macaddr protocol ipaddr netmask device mtu
 		json_select ..
 	json_select ..
 
@@ -108,6 +108,9 @@ generate_network() {
 			uci -q batch <<-EOF
 				set network.$1.proto='3g'
 				set network.$1.device='$device'
+				if [ ! -z $mtu ]; then
+					set network.$1.mtu='$mtu'
+				fi
 			EOF
 		;;
 
