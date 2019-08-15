@@ -1,0 +1,9 @@
+{
+  "name": "node-red-project",
+  "description": "A Node-RED Project",
+  "version": "0.0.1",
+  "dependencies": {
+    "node-red-contrib-gpsd": "~1.0.2",
+    "node-red-contrib-moment": "~3.0.2"
+  }
+}

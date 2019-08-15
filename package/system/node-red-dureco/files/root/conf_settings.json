@@ -1,1 +1,0 @@
-{"directory":{"Data":"/root/data/","Retention":10080},"timing":{"CheckFTP":60000,"DataFileHandler":300000,"RetentionHandler":180000},"ftp":{"1":{"IP":"192.168.1.11","Username":"upload_user","Password":"upload_psw","Directory":"./upload/","Compress":false}}}

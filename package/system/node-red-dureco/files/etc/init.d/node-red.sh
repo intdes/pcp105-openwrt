@@ -30,8 +30,20 @@ start_service()
 	        /etc/init.d/uhttpd restart
 		fi
 
+		gpspipe -r | nc -u 127.0.0.1 5111 &
+
         export HOME="/root"
         node-red < /dev/null 2>&1 >/dev/null &
+
+		#Add cron monitoring task
+	    test -f /etc/crontabs/root || touch /etc/crontabs/root
+	    grep -q 'check_node' /etc/crontabs/root || {
+    	    echo "* * * * *   /usr/local/bin/check_node.sh" >> /etc/crontabs/root
+	    }
+		sync
+
+	    /etc/init.d/cron restart &
+
         exit 0
 }
 
@@ -40,3 +52,4 @@ stop_service()
         killall node-red
         exit 0
 }
+

@@ -12,7 +12,7 @@ UCI_RELEASE=1
 
 PKG_NAME:=node-red-dureco
 PKG_VERSION:=$(UCI_VERSION)$(if $(UCI_RELEASE),.$(UCI_RELEASE))
-PKG_RELEASE:=4
+PKG_RELEASE:=7
 PKG_REV:=e339407372ffc70b1451e4eda218c01aa95a6a7e
 
 PKG_LICENSE:=LGPLv2.1 GPLv2
@@ -30,7 +30,7 @@ DEBUG=
 define Package/node-red-dureco
   SECTION:=base
   CATEGORY:=Base system
-  DEPENDS:= +landing-page +node-red
+  DEPENDS:= +landing-page +node-node-red
   TITLE:=Node-red dureco
 endef
 
@@ -45,6 +45,14 @@ Build/Compile = $(Build/Compile/Default)
 
 define Package/node-red-dureco/install
     $(CP) ./files/* $(1)/
+endef
+
+define Package/node-red-dureco/postinst
+#!/bin/sh       
+if [ -f /etc/init.d/node-red.sh ]; then
+    /etc/init.d/node-red.sh stop
+    /etc/init.d/node-red.sh start
+fi
 endef
 
 $(eval $(call BuildPackage,node-red-dureco))

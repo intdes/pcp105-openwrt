@@ -206,7 +206,9 @@ module.exports = {
     functionGlobalContext: {
         os:require('os'),
         fs1:require('fs'),
-        path1:require('path')
+        path1:require('path'),
+	fs:require('fs-extra'),
+	moment:require('moment')
         // os:require('os'),
         // jfive:require("johnny-five"),
         // j5board:require("johnny-five").Board({repl:false})
