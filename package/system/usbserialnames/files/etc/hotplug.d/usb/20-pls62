@@ -1,0 +1,50 @@
+#!/bin/sh
+
+create_symlinks_uc20()
+{
+        PATH=$1
+        cd /sys/$PATH
+        for f in ./*; do
+                if [ -d $f ]; then
+                        /bin/ls $f | /bin/grep -q tty
+                        if [ $? -eq 0 ]; then
+                                DEVICE_NAME=`/bin/ls $f | /bin/grep tty`
+                                NUMBER=`echo $DEVICE_NAME | /bin/sed "s/ttyUSB//"`
+                                /bin/ln -s /dev/$DEVICE_NAME /dev/ttymodem$NUMBER
+                        fi
+                fi
+        done
+        /bin/ln -s /dev/ttymodem3 /dev/ttymodem
+}
+
+create_symlinks_pls62()
+{
+        PATH=$1
+        cd /sys/$PATH
+        for f in ./*; do
+                if [ -d $f ]; then
+                        /bin/ls $f | /bin/grep -q tty
+                        if [ $? -eq 0 ]; then
+                                DEVICE_NAME=`/bin/ls $f/tty`
+                                NUMBER=`echo $DEVICE_NAME | /bin/sed "s/ttyACM//"`
+                                /bin/ln -s /dev/$DEVICE_NAME /dev/ttymodem$NUMBER
+                        fi
+                fi
+        done
+        /bin/ln -s /dev/ttymodem2 /dev/ttymodem
+}
+
+
+if [ "${ACTION}" = "add" ] ; then
+        echo ${PRODUCT} >>/tmp/test.txt
+        echo ${DEVPATH} >>/tmp/test.txt
+        case "${PRODUCT}" in
+        1e2d/5b/1730 )
+                create_symlinks_pls62 ${DEVPATH}
+                ;;
+        5c6/9003/0 )
+                create_symlinks_uc20 ${DEVPATH}
+                ;;
+        esac
+fi
+
