@@ -36,8 +36,6 @@ create_symlinks_pls62()
 
 
 if [ "${ACTION}" = "add" ] ; then
-        echo ${PRODUCT} >>/tmp/test.txt
-        echo ${DEVPATH} >>/tmp/test.txt
         case "${PRODUCT}" in
         1e2d/5b/1730 )
                 create_symlinks_pls62 ${DEVPATH}
